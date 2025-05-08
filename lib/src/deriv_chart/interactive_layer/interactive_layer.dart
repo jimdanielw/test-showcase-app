@@ -4,8 +4,13 @@ import 'package:deriv_chart/src/add_ons/drawing_tools_ui/drawing_tool_config.dar
 import 'package:deriv_chart/src/add_ons/repository.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/gestures/gesture_manager.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_controller.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_variant.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_widget.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/interactive_states/interactive_selected_tool_state.dart';
 import 'package:deriv_chart/src/models/chart_config.dart';
 import 'package:deriv_chart/src/theme/chart_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +41,13 @@ class InteractiveLayer extends StatefulWidget {
     required this.epochToCanvasX,
     required this.epochFromCanvasX,
     required this.drawingToolsRepo,
+    required this.crosshairZoomOutAnimation,
+    required this.crosshairController,
+    required this.crosshairVariant,
+    this.showCrosshair = true,
+    this.pipSize = 4,
+    this.onCrosshairAppeared,
+    this.onCrosshairDisappeared,
     super.key,
   });
 
@@ -62,6 +74,30 @@ class InteractiveLayer extends StatefulWidget {
 
   /// Converts epoch to canvas X coordinate.
   final EpochToX epochToCanvasX;
+
+  /// Whether to show the crosshair or not.
+  final bool showCrosshair;
+
+  /// Number of decimal digits when showing prices in the crosshair.
+  final int pipSize;
+
+  /// Called when the crosshair appears.
+  final VoidCallback? onCrosshairAppeared;
+
+  /// Called when the crosshair disappears.
+  final VoidCallback? onCrosshairDisappeared;
+
+  /// Animation for zooming out the crosshair
+  final Animation<double> crosshairZoomOutAnimation;
+
+  /// Crosshair controller
+  final CrosshairController crosshairController;
+
+  /// The variant of the crosshair to be used.
+  /// This is used to determine the type of crosshair to display.
+  /// The default is [CrosshairVariant.smallScreen].
+  /// [CrosshairVariant.largeScreen] is mostly for web.
+  final CrosshairVariant crosshairVariant;
 
   @override
   State<InteractiveLayer> createState() => _InteractiveLayerState();
@@ -159,6 +195,13 @@ class _InteractiveLayerState extends State<InteractiveLayer> {
       onClearAddingDrawingTool: widget.drawingTools.clearDrawingToolSelection,
       onSaveDrawingChange: _updateConfigInRepository,
       onAddDrawing: _addDrawingToRepo,
+      showCrosshair: widget.showCrosshair,
+      pipSize: widget.pipSize,
+      crosshairZoomOutAnimation: widget.crosshairZoomOutAnimation,
+      onCrosshairAppeared: widget.onCrosshairAppeared,
+      onCrosshairDisappeared: widget.onCrosshairDisappeared,
+      crosshairController: widget.crosshairController,
+      crosshairVariant: widget.crosshairVariant,
     );
   }
 }
@@ -174,8 +217,15 @@ class _InteractiveLayerGestureHandler extends StatefulWidget {
     required this.chartConfig,
     required this.onClearAddingDrawingTool,
     required this.onAddDrawing,
+    required this.crosshairZoomOutAnimation,
+    required this.crosshairController,
+    required this.crosshairVariant,
     this.addingDrawingTool,
     this.onSaveDrawingChange,
+    this.showCrosshair = true,
+    this.pipSize = 4,
+    this.onCrosshairAppeared,
+    this.onCrosshairDisappeared,
   });
 
   final List<InteractableDrawing> drawings;
@@ -200,6 +250,30 @@ class _InteractiveLayerGestureHandler extends StatefulWidget {
   final EpochToX epochToX;
   final QuoteToY quoteToY;
 
+  /// Whether to show the crosshair or not.
+  final bool showCrosshair;
+
+  /// Number of decimal digits when showing prices in the crosshair.
+  final int pipSize;
+
+  /// Called when the crosshair appears.
+  final VoidCallback? onCrosshairAppeared;
+
+  /// Called when the crosshair disappears.
+  final VoidCallback? onCrosshairDisappeared;
+
+  /// Animation for zooming out the crosshair
+  final Animation<double> crosshairZoomOutAnimation;
+
+  /// Crosshair controller
+  final CrosshairController crosshairController;
+
+  /// The variant of the crosshair to be used.
+  /// This is used to determine the type of crosshair to display.
+  /// The default is [CrosshairVariant.smallScreen].
+  /// [CrosshairVariant.largeScreen] is mostly for web.
+  final CrosshairVariant crosshairVariant;
+
   @override
   State<_InteractiveLayerGestureHandler> createState() =>
       _InteractiveLayerGestureHandlerState();
@@ -213,6 +287,7 @@ class _InteractiveLayerGestureHandlerState
 
   late InteractiveState _interactiveState;
   late AnimationController _stateChangeController;
+  late GestureManagerState _gestureManager;
   static const Curve _stateChangeCurve = Curves.easeInOut;
 
   @override
@@ -226,8 +301,23 @@ class _InteractiveLayerGestureHandlerState
       duration: const Duration(milliseconds: 300),
     );
 
-    // register the callback
-    context.read<GestureManagerState>().registerCallback(onTap);
+    _gestureManager = context.read<GestureManagerState>();
+
+    _gestureManager
+      ..registerCallback(onTap)
+      ..registerCallback(_onLongPressStart)
+      ..registerCallback(_onLongPressUpdate)
+      ..registerCallback(_onLongPressEnd);
+  }
+
+  @override
+  void dispose() {
+    _gestureManager
+      ..removeCallback(_onLongPressStart)
+      ..removeCallback(_onLongPressUpdate)
+      ..removeCallback(_onLongPressEnd);
+
+    super.dispose();
   }
 
   @override
@@ -270,14 +360,46 @@ class _InteractiveLayerGestureHandlerState
     }
   }
 
+  void _onLongPressStart(LongPressStartDetails details) {
+    widget.crosshairController.onLongPressStart(details);
+  }
+
+  void _onLongPressUpdate(LongPressMoveUpdateDetails details) {
+    widget.crosshairController.onLongPressUpdate(details);
+  }
+
+  void _onLongPressEnd(LongPressEndDetails details) {
+    widget.crosshairController.onLongPressEnd(details);
+  }
+
+  void _handleHover(PointerHoverEvent event) {
+    // First let the interactive state handle the hover for drawing tools
+    _interactiveState.onHover(event);
+    // Check if a drawing tool is being manipulated
+
+    final bool isDrawingToolActive =
+        _interactiveState is InteractiveAddingToolState ||
+            _interactiveState is InteractiveSelectedToolState ||
+            widget.drawings.any((drawing) => _interactiveState
+                .getToolState(drawing)
+                .contains(DrawingToolState.dragging));
+    // Then let the crosshair controller handle the hover
+    widget.crosshairController
+        .onHover(event, isDrawingToolActive: isDrawingToolActive);
+  }
+
+  void _handleExit(PointerExitEvent event) {
+    widget.crosshairController.onExit(event);
+  }
+
   @override
   Widget build(BuildContext context) {
     final XAxisModel xAxis = context.watch<XAxisModel>();
+
     return Semantics(
       child: MouseRegion(
-        onHover: (event) {
-          _interactiveState.onHover(event);
-        },
+        onHover: _handleHover,
+        onExit: _handleExit,
         child: GestureDetector(
           onTapUp: (details) => _interactiveState.onTap(details),
           onPanStart: (details) => _interactiveState.onPanStart(details),
@@ -294,6 +416,15 @@ class _InteractiveLayerGestureHandlerState
                 return Stack(
                   fit: StackFit.expand,
                   children: [
+                    CrosshairWidget(
+                      mainSeries: widget.series,
+                      quoteToCanvasY: widget.quoteToY,
+                      pipSize: widget.pipSize,
+                      crosshairController: widget.crosshairController,
+                      crosshairZoomOutAnimation:
+                          widget.crosshairZoomOutAnimation,
+                      crosshairVariant: widget.crosshairVariant,
+                    ),
                     ...widget.drawings
                         .map((e) => CustomPaint(
                               foregroundPainter: InteractableDrawingCustomPainter(
