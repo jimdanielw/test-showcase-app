@@ -48,7 +48,8 @@ class _CandleChartScreenState extends BaseChartScreenState<CandleChartScreen> {
       activeSymbol: 'CANDLE_CHART',
       // Explicitly set an empty indicators repository to remove any default indicators
       indicatorsRepo: _emptyIndicatorsRepo,
-      crosshairVariant: kIsWeb ? CrosshairVariant.largeScreen : CrosshairVariant.smallScreen,
+      crosshairVariant:
+          kIsWeb ? CrosshairVariant.largeScreen : CrosshairVariant.smallScreen,
     );
   }
 

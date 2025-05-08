@@ -48,13 +48,13 @@ class CrosshairCandleHighlightPainter extends CustomPainter {
     // Draw the body (rectangle representing open to close)
     final double yOpen = quoteToY(candle.open);
     final double yClose = quoteToY(candle.close);
-    
+
     // Determine the top and bottom of the candle body
     final double top = yOpen < yClose ? yOpen : yClose;
     final double bottom = yOpen < yClose ? yClose : yOpen;
-    
+
     paint.color = bodyHighlightColor;
-    
+
     canvas.drawRect(
       Rect.fromLTRB(
         xCenter - candleWidth / 2,

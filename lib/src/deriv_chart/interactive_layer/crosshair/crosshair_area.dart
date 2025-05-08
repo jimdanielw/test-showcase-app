@@ -135,7 +135,8 @@ class CrosshairArea extends StatelessWidget {
           ),
         ),
         if (crosshairTick is Candle)
-          _highlightCandle(constraints: constraints, xAxis: xAxis, theme: theme),
+          _highlightCandle(
+              constraints: constraints, xAxis: xAxis, theme: theme),
         // Add crosshair quote label at the right side of the chart
         if (crosshairVariant != CrosshairVariant.smallScreen &&
             cursorPosition.dy > 0)
@@ -212,15 +213,19 @@ class CrosshairArea extends StatelessWidget {
   }
 
   Widget _highlightCandle(
-      {required BoxConstraints constraints, required XAxisModel xAxis, required ChartTheme theme}) {
-        final Candle currentCandle = crosshairTick as Candle;
-        // Check if the current candle is bullish or bearish.
+      {required BoxConstraints constraints,
+      required XAxisModel xAxis,
+      required ChartTheme theme}) {
+    final Candle currentCandle = crosshairTick as Candle;
+    // Check if the current candle is bullish or bearish.
     final bool isBullishCandle = quoteToCanvasY(currentCandle.open) >
-            quoteToCanvasY(currentCandle.close);
-            Color bodyHighlightColor =
-                isBullishCandle ? theme.candleBullishBodyActive : theme.candleBearishBodyActive;
-                Color wickHighlightColor =
-                isBullishCandle ? theme.candleBullishWickActive : theme.candleBearishWickActive;
+        quoteToCanvasY(currentCandle.close);
+    final Color bodyHighlightColor = isBullishCandle
+        ? theme.candleBullishBodyActive
+        : theme.candleBearishBodyActive;
+    final Color wickHighlightColor = isBullishCandle
+        ? theme.candleBullishWickActive
+        : theme.candleBearishWickActive;
     return AnimatedPositioned(
       duration: animationDuration,
       left: 0,
