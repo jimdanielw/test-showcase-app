@@ -128,7 +128,8 @@ class CrosshairArea extends StatelessWidget {
           duration: animationDuration,
           child: CustomPaint(
             size: Size(1, constraints.maxHeight),
-            painter: crosshairVariant == CrosshairVariant.smallScreen
+            painter: crosshairVariant == CrosshairVariant.smallScreen &&
+                    crosshairTick is! Candle
                 ? CrosshairDotPainter(
                     dotColor: dotColor, dotBorderColor: dotEffect)
                 : null,
