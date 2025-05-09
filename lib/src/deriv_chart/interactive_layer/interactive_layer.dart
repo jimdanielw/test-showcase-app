@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:deriv_chart/src/add_ons/drawing_tools_ui/drawing_tool_config.dart';
 import 'package:deriv_chart/src/add_ons/repository.dart';
-import 'package:deriv_chart/src/deriv_chart/chart/gestures/gesture_manager.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_controller.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_variant.dart';
@@ -287,7 +286,7 @@ class _InteractiveLayerGestureHandlerState
 
   late InteractiveState _interactiveState;
   late AnimationController _stateChangeController;
-  late GestureManagerState _gestureManager;
+
   static const Curve _stateChangeCurve = Curves.easeInOut;
 
   @override
@@ -300,23 +299,10 @@ class _InteractiveLayerGestureHandlerState
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-
-    _gestureManager = context.read<GestureManagerState>();
-
-    _gestureManager
-      ..registerCallback(onTap)
-      ..registerCallback(_onLongPressStart)
-      ..registerCallback(_onLongPressUpdate)
-      ..registerCallback(_onLongPressEnd);
   }
 
   @override
   void dispose() {
-    _gestureManager
-      ..removeCallback(_onLongPressStart)
-      ..removeCallback(_onLongPressUpdate)
-      ..removeCallback(_onLongPressEnd);
-
     super.dispose();
   }
 
@@ -360,18 +346,6 @@ class _InteractiveLayerGestureHandlerState
     }
   }
 
-  void _onLongPressStart(LongPressStartDetails details) {
-    widget.crosshairController.onLongPressStart(details);
-  }
-
-  void _onLongPressUpdate(LongPressMoveUpdateDetails details) {
-    widget.crosshairController.onLongPressUpdate(details);
-  }
-
-  void _onLongPressEnd(LongPressEndDetails details) {
-    widget.crosshairController.onLongPressEnd(details);
-  }
-
   void _handleHover(PointerHoverEvent event) {
     // First let the interactive state handle the hover for drawing tools
     _interactiveState.onHover(event);
@@ -402,9 +376,17 @@ class _InteractiveLayerGestureHandlerState
         onExit: _handleExit,
         child: GestureDetector(
           onTapUp: (details) => _interactiveState.onTap(details),
+          onLongPressStart: (details) =>
+              widget.crosshairController.onLongPressStart(details),
+          onLongPressMoveUpdate: (details) =>
+              widget.crosshairController.onLongPressUpdate(details),
+          onLongPressEnd: (details) =>
+              widget.crosshairController.onLongPressEnd(details),
           onPanStart: (details) => _interactiveState.onPanStart(details),
           onPanUpdate: (details) => _interactiveState.onPanUpdate(details),
           onPanEnd: (details) => _interactiveState.onPanEnd(details),
+          behavior: HitTestBehavior
+              .opaque, // Ensure gestures are detected even if the widget is transparent
           // TODO(NA): Move this part into separate widget. InteractiveLayer only cares about the interactions and selected tool movement
           // It can delegate it to an inner component as well. which we can have different interaction behaviours like per platform as well.
           child: AnimatedBuilder(
@@ -469,10 +451,6 @@ class _InteractiveLayerGestureHandlerState
         ),
       ),
     );
-  }
-
-  void onTap(TapUpDetails details) {
-    _interactiveState.onTap(details);
   }
 
   @override
