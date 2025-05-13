@@ -36,6 +36,7 @@ class MainChart extends BasicChart {
   MainChart({
     required DataSeries<Tick> mainSeries,
     required this.crosshairVariant,
+    required this.showCrosshair,
     this.drawingTools,
     this.isLive = false,
     int pipSize = 4,
@@ -58,7 +59,6 @@ class MainChart extends BasicChart {
     double opacity = 1,
     ChartAxisConfig? chartAxisConfig,
     VisibleQuoteAreaChangedCallback? onQuoteAreaChanged,
-    this.showCrosshair = false,
   })  : _mainSeries = mainSeries,
         chartDataList = <ChartData>[
           mainSeries,
