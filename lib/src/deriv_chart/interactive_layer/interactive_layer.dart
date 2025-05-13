@@ -298,7 +298,7 @@ class _InteractiveLayerGestureHandlerState
   InteractionMode _currentInteractionMode = InteractionMode.none;
 
   // Custom gesture recognizer for drawing tools
-  DrawingToolGestureRecognizer? _drawingToolGestureRecognizer;
+  late DrawingToolGestureRecognizer _drawingToolGestureRecognizer;
 
   static const Curve _stateChangeCurve = Curves.easeInOut;
 
@@ -312,11 +312,22 @@ class _InteractiveLayerGestureHandlerState
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+
+    // Initialize the drawing tool gesture recognizer once
+    _drawingToolGestureRecognizer = DrawingToolGestureRecognizer(
+      onDrawingToolPanStart: _handleDrawingToolPanStart,
+      onDrawingToolPanUpdate: _handleDrawingToolPanUpdate,
+      onDrawingToolPanEnd: _handleDrawingToolPanEnd,
+      onDrawingToolPanCancel: _handleDrawingToolPanCancel,
+      hitTest: _hitTestDrawings,
+      onCrosshairCancel: _cancelCrosshair,
+      debugOwner: this,
+    );
   }
 
   @override
   void dispose() {
-    _drawingToolGestureRecognizer?.dispose();
+    _drawingToolGestureRecognizer.dispose();
     _stateChangeController.dispose();
     super.dispose();
   }
@@ -481,15 +492,14 @@ class _InteractiveLayerGestureHandlerState
   Widget build(BuildContext context) {
     final XAxisModel xAxis = context.watch<XAxisModel>();
 
-    // Create the drawing tool gesture recognizer
-    _drawingToolGestureRecognizer = DrawingToolGestureRecognizer(
+    // Reconfigure the drawing tool gesture recognizer instead of creating a new one
+    _drawingToolGestureRecognizer.reset(
       onDrawingToolPanStart: _handleDrawingToolPanStart,
       onDrawingToolPanUpdate: _handleDrawingToolPanUpdate,
       onDrawingToolPanEnd: _handleDrawingToolPanEnd,
       onDrawingToolPanCancel: _handleDrawingToolPanCancel,
       hitTest: _hitTestDrawings,
       onCrosshairCancel: _cancelCrosshair,
-      debugOwner: this,
     );
 
     return Semantics(
@@ -510,9 +520,9 @@ class _InteractiveLayerGestureHandlerState
             // Configure our custom drawing tool gesture recognizer
             DrawingToolGestureRecognizer: GestureRecognizerFactoryWithHandlers<
                 DrawingToolGestureRecognizer>(
-              () => _drawingToolGestureRecognizer!,
+              () => _drawingToolGestureRecognizer,
               (DrawingToolGestureRecognizer instance) {
-                // Configuration is done in the constructor
+                // Configuration is done in the reset method
               },
             ),
 

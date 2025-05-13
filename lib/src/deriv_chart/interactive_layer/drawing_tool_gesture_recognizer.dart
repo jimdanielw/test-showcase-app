@@ -18,22 +18,42 @@ class DrawingToolGestureRecognizer extends OneSequenceGestureRecognizer {
   }) : super(debugOwner: debugOwner);
 
   /// Called when a pan gesture starts on a drawing tool.
-  final void Function(DragStartDetails) onDrawingToolPanStart;
+  void Function(DragStartDetails) onDrawingToolPanStart;
 
   /// Called when a pan gesture updates on a drawing tool.
-  final void Function(DragUpdateDetails) onDrawingToolPanUpdate;
+  void Function(DragUpdateDetails) onDrawingToolPanUpdate;
 
   /// Called when a pan gesture ends on a drawing tool.
-  final void Function(DragEndDetails) onDrawingToolPanEnd;
+  void Function(DragEndDetails) onDrawingToolPanEnd;
 
   /// Called when a pan gesture is canceled on a drawing tool.
-  final void Function() onDrawingToolPanCancel;
+  void Function() onDrawingToolPanCancel;
 
   /// Function to test if a point hits a drawing tool.
-  final bool Function(Offset) hitTest;
+  bool Function(Offset) hitTest;
 
   /// Function to cancel any active crosshair.
-  final void Function() onCrosshairCancel;
+  void Function() onCrosshairCancel;
+
+  /// Resets the recognizer with new callback functions.
+  ///
+  /// This allows reusing the same recognizer instance when the callbacks
+  /// need to be updated, instead of creating a new instance.
+  void reset({
+    required void Function(DragStartDetails) onDrawingToolPanStart,
+    required void Function(DragUpdateDetails) onDrawingToolPanUpdate,
+    required void Function(DragEndDetails) onDrawingToolPanEnd,
+    required void Function() onDrawingToolPanCancel,
+    required bool Function(Offset) hitTest,
+    required void Function() onCrosshairCancel,
+  }) {
+    this.onDrawingToolPanStart = onDrawingToolPanStart;
+    this.onDrawingToolPanUpdate = onDrawingToolPanUpdate;
+    this.onDrawingToolPanEnd = onDrawingToolPanEnd;
+    this.onDrawingToolPanCancel = onDrawingToolPanCancel;
+    this.hitTest = hitTest;
+    this.onCrosshairCancel = onCrosshairCancel;
+  }
 
   /// Whether a drawing tool was hit at the start of the gesture.
   bool _isDrawingToolHit = false;
