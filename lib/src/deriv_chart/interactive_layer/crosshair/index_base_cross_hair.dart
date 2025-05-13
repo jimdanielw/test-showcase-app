@@ -2,6 +2,8 @@ import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshai
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/find.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/data_visualization/chart_data.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/gestures/gesture_manager.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/large_screen_crosshair_line_painter.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/small_screen_crosshair_line_painter.dart';
 import 'package:deriv_chart/src/models/tick.dart';
 import 'package:deriv_chart/src/theme/chart_theme.dart';
 import 'package:deriv_chart/src/theme/text_styles.dart';
@@ -9,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'crosshair_dot_painter.dart';
-import 'crosshair_line_painter.dart';
 
 /// A Cross-hair widget to work with index of data rather than epoch.
 class IndexBaseCrossHair extends StatefulWidget {
@@ -179,10 +180,14 @@ class _IndexBaseCrossHairState extends State<IndexBaseCrossHair>
                         1,
                         constraints.maxHeight - _crossHairDetailSize!.height,
                       ),
-                      painter: CrosshairLinePainter(
-                        crosshairVariant: widget.crosshairVariant,
-                        theme: theme,
-                      ),
+                      painter: widget.crosshairVariant ==
+                              CrosshairVariant.smallScreen
+                          ? SmallScreenCrosshairLinePainter(
+                              theme: theme,
+                            )
+                          : LargeScreenCrosshairLinePainter(
+                              theme: theme,
+                            ),
                     ),
                   )
                 ]

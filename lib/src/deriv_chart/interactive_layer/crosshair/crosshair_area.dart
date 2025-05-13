@@ -5,6 +5,8 @@ import 'package:deriv_chart/src/deriv_chart/chart/helpers/chart_date_utils.dart'
 import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_candle_highlight_painter.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_variant.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/large_screen_crosshair_line_painter.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/small_screen_crosshair_line_painter.dart';
 import 'package:deriv_chart/src/models/candle.dart';
 import 'package:deriv_chart/src/models/tick.dart';
 import 'package:deriv_chart/src/theme/chart_theme.dart';
@@ -13,7 +15,6 @@ import 'package:provider/provider.dart';
 
 import 'crosshair_details.dart';
 import 'crosshair_dot_painter.dart';
-import 'crosshair_line_painter.dart';
 
 /// A widget that displays crosshair details on a chart.
 ///
@@ -115,11 +116,14 @@ class CrosshairArea extends StatelessWidget {
           left: xAxis.xFromEpoch(crosshairTick!.epoch),
           child: CustomPaint(
             size: Size(constraints.maxWidth, constraints.maxHeight),
-            painter: CrosshairLinePainter(
-              theme: theme,
-              cursorY: cursorPosition.dy,
-              crosshairVariant: crosshairVariant,
-            ),
+            painter: crosshairVariant == CrosshairVariant.smallScreen
+                ? SmallScreenCrosshairLinePainter(
+                    theme: theme,
+                  )
+                : LargeScreenCrosshairLinePainter(
+                    theme: theme,
+                    cursorY: cursorPosition.dy,
+                  ),
           ),
         ),
         AnimatedPositioned(
