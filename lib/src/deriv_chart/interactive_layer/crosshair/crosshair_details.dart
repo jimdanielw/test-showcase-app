@@ -116,11 +116,9 @@ class CrosshairDetails extends StatelessWidget {
     final String percentChangeLabel =
         '${percentageChange.toStringAsFixed(pipSize)}%';
 
-    final Color color = percentageChange > 0
+    final Color color = percentageChange >= 0
         ? theme.crosshairInformationBoxTextProfit
-        : percentageChange < 0
-            ? theme.crosshairInformationBoxTextLoss
-            : theme.crosshairInformationBoxTextStatic;
+        : theme.crosshairInformationBoxTextLoss;
     return Container(
       width: double.infinity,
       color: color,
