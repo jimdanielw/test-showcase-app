@@ -38,25 +38,26 @@ class CrosshairOhlcHighlightPainter extends CrosshairHighlightPainter {
       ..style = PaintingStyle.stroke;
 
     // Draw the wick (vertical line representing high to low)
-    canvas..drawLine(
-      Offset(xCenter, quoteToY(candle.high)),
-      Offset(xCenter, quoteToY(candle.low)),
-      paint,
-    )
+    canvas
+      ..drawLine(
+        Offset(xCenter, quoteToY(candle.high)),
+        Offset(xCenter, quoteToY(candle.low)),
+        paint,
+      )
 
-    // Draw the open line (horizontal line on the left)
-    ..drawLine(
-      Offset(xCenter - candleWidth / 2, quoteToY(candle.open)),
-      Offset(xCenter, quoteToY(candle.open)),
-      paint,
-    )
+      // Draw the open line (horizontal line on the left)
+      ..drawLine(
+        Offset(xCenter - candleWidth / 2, quoteToY(candle.open)),
+        Offset(xCenter, quoteToY(candle.open)),
+        paint,
+      )
 
-    // Draw the close line (horizontal line on the right)
-    ..drawLine(
-      Offset(xCenter, quoteToY(candle.close)),
-      Offset(xCenter + candleWidth / 2, quoteToY(candle.close)),
-      paint,
-    );
+      // Draw the close line (horizontal line on the right)
+      ..drawLine(
+        Offset(xCenter, quoteToY(candle.close)),
+        Offset(xCenter + candleWidth / 2, quoteToY(candle.close)),
+        paint,
+      );
   }
 
   @override

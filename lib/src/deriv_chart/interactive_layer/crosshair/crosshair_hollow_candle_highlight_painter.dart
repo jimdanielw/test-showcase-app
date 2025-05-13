@@ -38,17 +38,17 @@ class CrosshairHollowCandleHighlightPainter extends CrosshairHighlightPainter {
       ..style = PaintingStyle.fill;
 
     // Draw the wicks (vertical lines from high to close and from low to open)
-    canvas..drawLine(
-      Offset(xCenter, quoteToY(candle.high)),
-      Offset(xCenter, quoteToY(candle.close)),
-      wickPaint,
-    )
-
-    ..drawLine(
-      Offset(xCenter, quoteToY(candle.low)),
-      Offset(xCenter, quoteToY(candle.open)),
-      wickPaint,
-    );
+    canvas
+      ..drawLine(
+        Offset(xCenter, quoteToY(candle.high)),
+        Offset(xCenter, quoteToY(candle.close)),
+        wickPaint,
+      )
+      ..drawLine(
+        Offset(xCenter, quoteToY(candle.low)),
+        Offset(xCenter, quoteToY(candle.open)),
+        wickPaint,
+      );
 
     final double yOpen = quoteToY(candle.open);
     final double yClose = quoteToY(candle.close);
