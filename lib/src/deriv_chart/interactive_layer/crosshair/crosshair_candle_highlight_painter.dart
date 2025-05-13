@@ -1,26 +1,25 @@
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_highlight_painter.dart';
 import 'package:deriv_chart/src/models/candle.dart';
 import 'package:flutter/material.dart';
 
 /// A custom painter to paint a highlighted candle at the crosshair position.
-class CrosshairCandleHighlightPainter extends CustomPainter {
+class CrosshairCandleHighlightPainter extends CrosshairHighlightPainter {
   /// Initializes a custom painter to paint a highlighted candle.
   const CrosshairCandleHighlightPainter({
-    required this.candle,
-    required this.quoteToY,
-    required this.xCenter,
+    required Candle candle,
+    required double Function(double) quoteToY,
+    required double xCenter,
     required this.candleWidth,
     required this.bodyHighlightColor,
     required this.wickHighlightColor,
-  });
+  }) : super(
+          tick: candle,
+          quoteToY: quoteToY,
+          xCenter: xCenter,
+        );
 
-  /// The candle to highlight.
-  final Candle candle;
-
-  /// Function to convert quote to Y coordinate.
-  final double Function(double) quoteToY;
-
-  /// The X center position of the candle.
-  final double xCenter;
+  /// Gets the candle to highlight.
+  Candle get candle => tick as Candle;
 
   /// The width of the candle.
   final double candleWidth;
@@ -67,9 +66,9 @@ class CrosshairCandleHighlightPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CrosshairCandleHighlightPainter oldDelegate) =>
-      oldDelegate.candle != candle ||
-      oldDelegate.xCenter != xCenter ||
+  bool shouldRepaint(covariant CrosshairCandleHighlightPainter oldDelegate) =>
+      super.shouldRepaint(oldDelegate) ||
       oldDelegate.candleWidth != candleWidth ||
-      oldDelegate.bodyHighlightColor != bodyHighlightColor;
+      oldDelegate.bodyHighlightColor != bodyHighlightColor ||
+      oldDelegate.wickHighlightColor != wickHighlightColor;
 }

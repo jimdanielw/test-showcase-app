@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:deriv_chart/src/deriv_chart/chart/data_visualization/chart_series/data_series.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/helpers/chart_date_utils.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
-import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_candle_highlight_painter.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_highlight_painter.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_variant.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/large_screen_crosshair_line_painter.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/small_screen_crosshair_line_painter.dart';
@@ -139,9 +139,7 @@ class CrosshairArea extends StatelessWidget {
                 : null,
           ),
         ),
-        if (crosshairTick is Candle)
-          _highlightCandle(
-              constraints: constraints, xAxis: xAxis, theme: theme),
+        _highlightTick(constraints: constraints, xAxis: xAxis, theme: theme),
         // Add crosshair quote label at the right side of the chart
         if (crosshairVariant != CrosshairVariant.smallScreen &&
             cursorPosition.dy > 0)
@@ -217,36 +215,36 @@ class CrosshairArea extends StatelessWidget {
     );
   }
 
-  Widget _highlightCandle(
+  Widget _highlightTick(
       {required BoxConstraints constraints,
       required XAxisModel xAxis,
       required ChartTheme theme}) {
-    final Candle currentCandle = crosshairTick as Candle;
-    // Check if the current candle is bullish or bearish.
-    final bool isBullishCandle = quoteToCanvasY(currentCandle.open) >
-        quoteToCanvasY(currentCandle.close);
-    final Color bodyHighlightColor = isBullishCandle
-        ? theme.candleBullishBodyActive
-        : theme.candleBearishBodyActive;
-    final Color wickHighlightColor = isBullishCandle
-        ? theme.candleBullishWickActive
-        : theme.candleBearishWickActive;
+    if (crosshairTick == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Get the appropriate highlight painter for the current tick based on the series type
+    final CrosshairHighlightPainter? highlightPainter =
+        mainSeries.getCrosshairHighlightPainter(
+      crosshairTick!,
+      quoteToCanvasY,
+      xAxis.xFromEpoch(crosshairTick!.epoch),
+      // Use a reasonable default element width (6% of the granularity width)
+      (xAxis.xFromEpoch(xAxis.granularity) - xAxis.xFromEpoch(0)) * 0.6,
+      theme,
+    );
+
+    if (highlightPainter == null) {
+      return const SizedBox.shrink();
+    }
+
     return AnimatedPositioned(
       duration: animationDuration,
       left: 0,
       top: 0,
       child: CustomPaint(
         size: Size(constraints.maxWidth, constraints.maxHeight),
-        painter: CrosshairCandleHighlightPainter(
-          candle: currentCandle,
-          quoteToY: quoteToCanvasY,
-          xCenter: xAxis.xFromEpoch(crosshairTick!.epoch),
-          // Use a reasonable default candle width (6% of the granularity width)
-          candleWidth:
-              (xAxis.xFromEpoch(xAxis.granularity) - xAxis.xFromEpoch(0)) * 0.6,
-          bodyHighlightColor: bodyHighlightColor,
-          wickHighlightColor: wickHighlightColor,
-        ),
+        painter: highlightPainter,
       ),
     );
   }
