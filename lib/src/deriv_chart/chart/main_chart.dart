@@ -16,7 +16,6 @@ import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
 import 'package:deriv_chart/src/models/chart_config.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../drawing_tool_chart/drawing_tool_chart.dart';
 import 'basic_chart.dart';
 import 'multiple_animated_builder.dart';
 import 'data_visualization/annotations/chart_annotation.dart';
@@ -206,6 +205,18 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
         widget.showCurrentTickBlinkAnimation !=
             oldChart.showCurrentTickBlinkAnimation) {
       _updateBlinkingAnimationStatus();
+    }
+
+    // Update the crosshair controller when showCrosshair changes
+    if (widget.showCrosshair != oldChart.showCrosshair) {
+      // Create a new controller with the updated showCrosshair value
+      crosshairController = CrosshairController(
+        xAxisModel: xAxis,
+        series: widget.mainSeries as DataSeries<Tick>,
+        onCrosshairAppeared: widget.onCrosshairAppeared,
+        onCrosshairDisappeared: widget.onCrosshairDisappeared,
+        showCrosshair: widget.showCrosshair,
+      );
     }
 
     xAxis.update(
@@ -401,20 +412,6 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
             ],
           );
         },
-      );
-
-  Widget _buildDrawingToolChart(DrawingTools drawingTools) =>
-      MultipleAnimatedBuilder(
-        animations: <Listenable>[
-          topBoundQuoteAnimationController,
-          bottomBoundQuoteAnimationController,
-        ],
-        builder: (_, Widget? child) => DrawingToolChart(
-          series: widget.mainSeries as DataSeries<Tick>,
-          chartQuoteToCanvasY: chartQuoteToCanvasY,
-          chartQuoteFromCanvasY: chartQuoteFromCanvasY,
-          drawingTools: drawingTools,
-        ),
       );
 
   Widget _buildLoadingAnimation() => LoadingAnimationArea(

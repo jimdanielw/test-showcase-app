@@ -203,12 +203,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   }
 
   /// Called when the mouse hovers over the chart.
-  void onHover(PointerHoverEvent event, {required bool isDrawingToolActive}) {
-    if (isDrawingToolActive) {
-      _hideCrosshair();
-      return;
-    }
-
+  void onHover(PointerHoverEvent event) {
     final double x = event.localPosition.dx;
     final int epoch = xAxisModel.epochFromX(x);
     final Tick? tick = _findClosestTick(epoch);
@@ -241,6 +236,11 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Shows the crosshair with the given tick and position.
   void _showCrosshair(Tick crosshairTick, Offset position) {
+    // Only show the crosshair if showCrosshair is true
+    if (!showCrosshair) {
+      return;
+    }
+
     if (!value.isVisible) {
       onCrosshairAppeared?.call();
     }

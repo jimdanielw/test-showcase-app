@@ -15,6 +15,7 @@ class CrosshairWidget extends StatelessWidget {
     required this.crosshairController,
     required this.crosshairZoomOutAnimation,
     required this.crosshairVariant,
+    this.showCrosshair = true,
     super.key,
   });
 
@@ -39,8 +40,16 @@ class CrosshairWidget extends StatelessWidget {
   /// [CrosshairVariant.largeScreen] is mostly for web.
   final CrosshairVariant crosshairVariant;
 
+  /// Whether to show the crosshair or not.
+  final bool showCrosshair;
+
   @override
   Widget build(BuildContext context) {
+    // If showCrosshair is false, don't show the crosshair at all
+    if (!showCrosshair) {
+      return const SizedBox.shrink();
+    }
+
     return ValueListenableBuilder<CrosshairState>(
       valueListenable: crosshairController,
       builder: (context, state, _) {
