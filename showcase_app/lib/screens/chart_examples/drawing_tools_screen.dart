@@ -21,7 +21,7 @@ class _DrawingToolsScreenState
   bool _isInitialized = false;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   @override
   void initState() {

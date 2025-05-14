@@ -38,7 +38,7 @@ class _CandleChartWithIndicatorScreenState
   int _rsiPeriod = 14;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   // Create an indicators repository to manage indicators
   late final Repository<IndicatorConfig> _indicatorsRepo;

@@ -40,7 +40,7 @@ class _OHLCChartWithIndicatorScreenState
   final MovingAverageType _bollingerMAType = MovingAverageType.simple;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   // Create an indicators repository to manage indicators
   late final Repository<IndicatorConfig> _indicatorsRepo;

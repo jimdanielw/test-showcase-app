@@ -19,7 +19,7 @@ class _MarkersScreenState extends BaseChartScreenState<MarkersScreen> {
   ActiveMarker? _activeMarker;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   @override
   void initState() {

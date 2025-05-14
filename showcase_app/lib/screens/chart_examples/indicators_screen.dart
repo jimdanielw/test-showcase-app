@@ -18,7 +18,7 @@ class _IndicatorsScreenState extends BaseChartScreenState<IndicatorsScreen> {
   bool _showMACD = false;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   int _bollingerPeriod = 20;
   double _bollingerDeviation = 2;

@@ -20,7 +20,7 @@ class _LineChartScreenState extends BaseChartScreenState<LineChartScreen> {
   TickIndicator? _tickIndicator;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   @override
   void initState() {
@@ -69,6 +69,10 @@ class _LineChartScreenState extends BaseChartScreenState<LineChartScreen> {
   Widget buildChart() {
     final List<ChartAnnotation<ChartObject>> annotations = [];
 
+    // Define theme for use in chart components
+    final theme =
+        _useDarkTheme ? ChartDefaultDarkTheme() : ChartDefaultLightTheme();
+
     if (_showTickIndicator && ticks.isNotEmpty && _tickIndicator != null) {
       annotations.add(_tickIndicator!);
     }
@@ -81,6 +85,10 @@ class _LineChartScreenState extends BaseChartScreenState<LineChartScreen> {
           hasArea: _hasArea,
           thickness: _thickness,
           color: _lineColor,
+          areaGradientColors: (
+            start: theme.areaGradientStart,
+            end: theme.areaGradientEnd
+          ),
         ),
       ),
       annotations: annotations,

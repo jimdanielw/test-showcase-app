@@ -18,7 +18,7 @@ class _BarriersScreenState extends BaseChartScreenState<BarriersScreen> {
   bool _showTickIndicator = true;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   HorizontalBarrier? _horizontalBarrier;
   VerticalBarrier? _verticalBarrier;

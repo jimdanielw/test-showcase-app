@@ -140,7 +140,7 @@ class ThemeCustomizationScreen extends BaseChartScreen {
 
 class _ThemeCustomizationScreenState
     extends BaseChartScreenState<ThemeCustomizationScreen> {
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
   bool _useCustomTheme = false;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform

@@ -35,7 +35,7 @@ class _HollowCandleScreenState
   Color _bearishWickColor = CandleBearishThemeColors.candleBearishWickDefault;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
-  bool _useDarkTheme = true;
+  bool _useDarkTheme = false;
 
   @override
   String getTitle() => 'Hollow Candle Chart';
