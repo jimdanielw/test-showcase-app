@@ -52,7 +52,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
     required this.showCrosshair,
     this.onCrosshairAppeared,
     this.onCrosshairDisappeared,
-    this.enabled = false,
+    this.isCrosshairActive = false,
   }) : super(CrosshairState());
 
   /// The X axis model.
@@ -70,8 +70,8 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   /// Called when the crosshair disappears.
   final VoidCallback? onCrosshairDisappeared;
 
-  /// Whether the crosshair is enabled.
-  bool enabled;
+  /// Whether the crosshair is currently active.
+  bool isCrosshairActive;
 
   // Track previous position and time for velocity calculation
   Offset _previousOffset = Offset.zero;
@@ -135,9 +135,6 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Called when a long press starts.
   void onLongPressStart(LongPressStartDetails details) {
-    // if (!enabled) {
-    //   return;
-    // }
 
     // Initialize position and time tracking
     _previousOffset = details.localPosition;
@@ -159,10 +156,6 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Called when a long press is updated.
   void onLongPressUpdate(LongPressMoveUpdateDetails details) {
-    // if (!enabled) {
-    //   return;
-    // }
-
     // Update drag velocity with the latest gesture data
     updateDragVelocity(details.localPosition);
 
@@ -180,10 +173,6 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Called when a long press ends.
   void onLongPressEnd(LongPressEndDetails details) {
-    // if (!enabled) {
-    //   return;
-    // }
-
     // Use the velocity provided by the gesture system if available
     if (details.velocity != Velocity.zero) {
       _dragVelocity = VelocityEstimate(
@@ -230,7 +219,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
       isVisible: false,
     );
 
-    enabled = false;
+    isCrosshairActive = false;
     notifyListeners(); // Notify listeners when enabled changes
   }
 
@@ -250,7 +239,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
       cursorPosition: position,
       isVisible: true,
     );
-    enabled = true;
+    isCrosshairActive = true;
     notifyListeners(); // Notify listeners when enabled changes
   }
 

@@ -151,7 +151,7 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
   bool get _isScrollToLastTickAvailable =>
       (widget._mainSeries.entries?.isNotEmpty ?? false) &&
       xAxis.rightBoundEpoch < widget._mainSeries.entries!.last.epoch &&
-      !crosshairController.enabled;
+      !crosshairController.isCrosshairActive;
 
   /// Crosshair related state.
   late AnimationController crosshairZoomOutAnimationController;
