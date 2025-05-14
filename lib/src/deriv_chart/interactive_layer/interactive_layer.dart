@@ -430,6 +430,9 @@ class _InteractiveLayerGestureHandlerState
   }
 
   void _handleHover(PointerHoverEvent event) {
+    if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+      return;
+    }
     // This returns true if a drawing tool was hit according to the state
     final bool hitDrawing = _interactiveState.onHover(event);
 
