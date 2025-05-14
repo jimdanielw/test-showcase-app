@@ -135,7 +135,6 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Called when a long press starts.
   void onLongPressStart(LongPressStartDetails details) {
-
     // Initialize position and time tracking
     _previousOffset = details.localPosition;
     _previousTime = DateTime.now();
