@@ -63,7 +63,6 @@ class CrosshairDetails extends StatelessWidget {
                     children: [
                       mainSeries.getCrossHairInfo(crosshairTick, pipSize,
                           context.watch<ChartTheme>(), crosshairVariant),
-                      const SizedBox(height: 5),
                       _buildTimeLabel(context, crosshairVariant),
                     ],
                   ),
@@ -98,13 +97,13 @@ class CrosshairDetails extends StatelessWidget {
         Text(
           date,
           textAlign: TextAlign.center,
-          style: style.copyWith(fontSize: 12),
+          style: style,
         ),
         const SizedBox(width: 8),
         Text(
           time,
           textAlign: TextAlign.center,
-          style: style.copyWith(fontSize: 12),
+          style: style,
         ),
       ],
     );
