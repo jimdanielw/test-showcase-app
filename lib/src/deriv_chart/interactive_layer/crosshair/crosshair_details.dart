@@ -45,12 +45,12 @@ class CrosshairDetails extends StatelessWidget {
         filter: ImageFilter.blur(
             sigmaX: theme.crosshairInformationBoxContainerGlassBackgroundBlur,
             sigmaY: theme.crosshairInformationBoxContainerGlassBackgroundBlur),
-        child: IntrinsicWidth(
-          child: Container(
-            decoration: BoxDecoration(
-              color: theme.crosshairInformationBoxContainerGlassColor,
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-            ),
+        child: Container(
+              decoration: BoxDecoration(
+                color: theme.crosshairInformationBoxContainerGlassColor,
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+              ),
+          child: IntrinsicWidth(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
