@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:deriv_chart/src/add_ons/drawing_tools_ui/drawing_tool_config.dart';
 import 'package:deriv_chart/src/add_ons/repository.dart';
-import 'package:deriv_chart/src/deriv_chart/chart/gestures/gesture_manager.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/multiple_animated_builder.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_controller.dart';
@@ -353,8 +352,6 @@ class _InteractiveLayerGestureHandlerState
       duration: const Duration(milliseconds: 300),
     );
 
-    // register the callback
-    context.read<GestureManagerState>().registerCallback(onTap);
     // Initialize the drawing tool gesture recognizer once
     _drawingToolGestureRecognizer = DrawingToolGestureRecognizer(
       onDrawingToolPanStart: _handleDrawingToolPanStart,
@@ -474,10 +471,6 @@ class _InteractiveLayerGestureHandlerState
   }
 
   void _handleHover(PointerHoverEvent event) {
-    if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
-      return;
-    }
-    // This returns true if a drawing tool was hit according to the state
     final bool hitDrawing = _interactiveState.onHover(event);
     _interactionNotifier.notify();
 
@@ -486,6 +479,11 @@ class _InteractiveLayerGestureHandlerState
     // Otherwise, we should be in normal mode.
     _updateInteractionMode(
         hitDrawing ? InteractionMode.drawingTool : InteractionMode.none);
+
+    // For small screen variant, we don't show the crosshair on hover
+    if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+      return;
+    }
 
     // Handle crosshair visibility based on the interaction mode
     if (_currentInteractionMode == InteractionMode.drawingTool) {
@@ -667,11 +665,6 @@ class _InteractiveLayerGestureHandlerState
         ),
       ),
     );
-  }
-
-  void onTap(TapUpDetails details) {
-    _interactiveState.onTap(details);
-    _interactionNotifier.notify();
   }
 
   @override
