@@ -46,10 +46,10 @@ class CrosshairDetails extends StatelessWidget {
             sigmaX: theme.crosshairInformationBoxContainerGlassBackgroundBlur,
             sigmaY: theme.crosshairInformationBoxContainerGlassBackgroundBlur),
         child: Container(
-              decoration: BoxDecoration(
-                color: theme.crosshairInformationBoxContainerGlassColor,
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-              ),
+          decoration: BoxDecoration(
+            color: theme.crosshairInformationBoxContainerGlassColor,
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
           child: IntrinsicWidth(
             child: Column(
               mainAxisSize: MainAxisSize.min,
