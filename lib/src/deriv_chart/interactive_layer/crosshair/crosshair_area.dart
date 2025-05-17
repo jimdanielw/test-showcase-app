@@ -58,25 +58,38 @@ class CrosshairArea extends StatelessWidget {
   /// [CrosshairVariant.largeScreen] is mostly for web.
   final CrosshairVariant crosshairVariant;
 
-  /// Calculates the position for the crosshair details box
-  /// to maintain a gap from the horizontal line (cursor position)
-  double _calculateDetailsPosition(
-      {required double cursorY, required double maxHeight}) {
-    // Estimated height of the details box
+  /// Calculates the optimal vertical position for the crosshair details box.
+  ///
+  /// In Flutter canvas, the coordinate system has (0,0) at the top-left corner,
+  /// with y-values increasing downward. This method calculates a position that
+  /// places the details box above the cursor with appropriate spacing.
+  ///
+  /// The calculation works as follows:
+  /// 1. Start with the cursor's Y position
+  /// 2. Subtract the height of the details box (100px) to position it above the cursor
+  /// 3. Subtract an additional gap (120px) to create space between the cursor and the box
+  /// 4. Ensure the box doesn't go too close to the top edge by using max(10, result)
+  ///
+  /// This ensures the details box is visible and well-positioned relative to the cursor,
+  /// while preventing it from being rendered partially off-screen at the top.
+  ///
+  /// Parameters:
+  /// - [cursorY]: The Y-coordinate of the cursor on the canvas
+  ///
+  /// Returns:
+  /// The Y-coordinate (top position) where the details box should be rendered.
+  /// The value is guaranteed to be at least 10 pixels from the top of the canvas.
+  double _calculateDetailsPosition({required double cursorY}) {
+    // Height of the details information box in pixels
     const double detailsBoxHeight = 100;
-    // Gap between cursor and details box
+
+    // Additional vertical gap between the cursor and the details box
+    // This ensures the box doesn't overlap with or crowd the cursor
     const double gap = 120;
 
-    // If cursor is in the top half of the chart, position details below the cursor
-    // if (cursorY < maxHeight / 2) {
-    if (cursorY > maxHeight) {
-      return cursorY + gap;
-    }
-    // Otherwise position details above the cursor
-    else {
-      // Make sure details don't go off the top of the chart
-      return max(10, cursorY - detailsBoxHeight - gap);
-    }
+    // Calculate position and ensure it's at least 10px from the top edge
+    // This prevents the box from being rendered partially off-screen
+    return max(10, cursorY - detailsBoxHeight - gap);
   }
 
   @override
@@ -195,8 +208,7 @@ class CrosshairArea extends StatelessWidget {
           // Subtract the height of the details box plus a gap
           top: crosshairVariant == CrosshairVariant.smallScreen
               ? 0
-              : _calculateDetailsPosition(
-                  cursorY: cursorPosition.dy, maxHeight: constraints.maxHeight),
+              : _calculateDetailsPosition(cursorY: cursorPosition.dy),
           bottom: 0,
           width: constraints.maxWidth,
           left:
