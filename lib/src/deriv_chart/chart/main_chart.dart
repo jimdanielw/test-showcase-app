@@ -193,8 +193,14 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
     crosshairController = CrosshairController(
       xAxisModel: xAxis,
       series: widget.mainSeries as DataSeries<Tick>,
-      onCrosshairAppeared: widget.onCrosshairAppeared,
-      onCrosshairDisappeared: widget.onCrosshairDisappeared,
+      onCrosshairAppeared: () {
+        crosshairZoomOutAnimationController.forward();
+        widget.onCrosshairAppeared?.call();
+      },
+      onCrosshairDisappeared: () {
+        crosshairZoomOutAnimationController.reverse();
+        widget.onCrosshairDisappeared?.call();
+      },
       showCrosshair: widget.showCrosshair,
     );
     _setupController();
@@ -218,8 +224,14 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
       crosshairController = CrosshairController(
         xAxisModel: xAxis,
         series: widget.mainSeries as DataSeries<Tick>,
-        onCrosshairAppeared: widget.onCrosshairAppeared,
-        onCrosshairDisappeared: widget.onCrosshairDisappeared,
+        onCrosshairAppeared: () {
+          crosshairZoomOutAnimationController.forward();
+          widget.onCrosshairAppeared?.call();
+        },
+        onCrosshairDisappeared: () {
+          crosshairZoomOutAnimationController.reverse();
+          widget.onCrosshairDisappeared?.call();
+        },
         showCrosshair: widget.showCrosshair,
       );
     }
