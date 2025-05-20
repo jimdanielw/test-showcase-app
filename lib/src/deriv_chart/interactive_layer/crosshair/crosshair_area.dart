@@ -152,7 +152,7 @@ class CrosshairArea extends StatelessWidget {
                 : null,
           ),
         ),
-        _highlightTick(constraints: constraints, xAxis: xAxis, theme: theme),
+        _buildCrosshairTickHightlight(constraints: constraints, xAxis: xAxis, theme: theme),
         // Add crosshair quote label at the right side of the chart
         if (crosshairVariant != CrosshairVariant.smallScreen &&
             cursorPosition.dy > 0)
@@ -227,7 +227,7 @@ class CrosshairArea extends StatelessWidget {
     );
   }
 
-  Widget _highlightTick(
+  Widget _buildCrosshairTickHightlight(
       {required BoxConstraints constraints,
       required XAxisModel xAxis,
       required ChartTheme theme}) {
