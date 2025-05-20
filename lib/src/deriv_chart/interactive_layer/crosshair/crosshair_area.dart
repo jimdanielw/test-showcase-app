@@ -207,7 +207,7 @@ class CrosshairArea extends StatelessWidget {
           // Use cursorY which is the cursor's Y position
           // Subtract the height of the details box plus a gap
           top: crosshairVariant == CrosshairVariant.smallScreen
-              ? 0
+              ? 8
               : _calculateDetailsPosition(cursorY: cursorPosition.dy),
           bottom: 0,
           width: constraints.maxWidth,
