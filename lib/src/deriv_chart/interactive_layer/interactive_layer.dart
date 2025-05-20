@@ -539,7 +539,7 @@ class _InteractiveLayerGestureHandlerState
   Widget build(BuildContext context) {
     final XAxisModel xAxis = context.watch<XAxisModel>();
     // Reconfigure the drawing tool gesture recognizer instead of creating a new one
-    _drawingToolGestureRecognizer.reset(
+    _drawingToolGestureRecognizer.updateCallbacks(
       onDrawingToolPanStart: _handleDrawingToolPanStart,
       onDrawingToolPanUpdate: _handleDrawingToolPanUpdate,
       onDrawingToolPanEnd: _handleDrawingToolPanEnd,

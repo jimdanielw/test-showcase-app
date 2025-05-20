@@ -35,11 +35,11 @@ class DrawingToolGestureRecognizer extends OneSequenceGestureRecognizer {
   /// Function to cancel any active crosshair.
   void Function() onCrosshairCancel;
 
-  /// Resets the recognizer with new callback functions.
+  /// Updates the recognizer with new callback functions.
   ///
   /// This allows reusing the same recognizer instance when the callbacks
   /// need to be updated, instead of creating a new instance.
-  void reset({
+  void updateCallbacks({
     required void Function(DragStartDetails) onDrawingToolPanStart,
     required void Function(DragUpdateDetails) onDrawingToolPanUpdate,
     required void Function(DragEndDetails) onDrawingToolPanEnd,
