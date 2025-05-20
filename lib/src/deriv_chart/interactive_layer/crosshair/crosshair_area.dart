@@ -81,7 +81,7 @@ class CrosshairArea extends StatelessWidget {
   /// The value is guaranteed to be at least 10 pixels from the top of the canvas.
   double _calculateDetailsPosition({required double cursorY}) {
     // Height of the details information box in pixels
-    const double detailsBoxHeight = 100;
+    final double detailsBoxHeight = crosshairTick is Candle ? 100 : 50;
 
     // Additional vertical gap between the cursor and the details box
     // This ensures the box doesn't overlap with or crowd the cursor
