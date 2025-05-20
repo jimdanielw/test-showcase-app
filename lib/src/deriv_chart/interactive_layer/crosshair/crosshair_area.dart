@@ -152,7 +152,8 @@ class CrosshairArea extends StatelessWidget {
                 : null,
           ),
         ),
-        _buildCrosshairTickHightlight(constraints: constraints, xAxis: xAxis, theme: theme),
+        _buildCrosshairTickHightlight(
+            constraints: constraints, xAxis: xAxis, theme: theme),
         // Add crosshair quote label at the right side of the chart
         if (crosshairVariant != CrosshairVariant.smallScreen &&
             cursorPosition.dy > 0)
@@ -227,6 +228,24 @@ class CrosshairArea extends StatelessWidget {
     );
   }
 
+  /// Builds a widget that highlights the current tick at the crosshair position.
+  ///
+  /// This method creates a visual highlight for the data point (tick, candle, etc.)
+  /// that the crosshair is currently pointing to. It delegates the actual painting
+  /// to a series-specific highlight painter obtained from the main series.
+  ///
+  /// The highlight is positioned at the exact location of the data point and provides
+  /// visual feedback to the user about which specific data element they are examining.
+  /// Different chart types (line, candle, OHLC) will have different highlight visualizations.
+  ///
+  /// Parameters:
+  /// * [constraints] - The layout constraints for the crosshair area.
+  /// * [xAxis] - The X-axis model providing epoch-to-coordinate conversion and granularity.
+  /// * [theme] - The chart theme containing colors and styles for the highlight.
+  ///
+  /// Returns:
+  /// A positioned widget containing the custom painter for the highlight, or an empty
+  /// widget if no highlight painter is available for the current series type.
   Widget _buildCrosshairTickHightlight(
       {required BoxConstraints constraints,
       required XAxisModel xAxis,
@@ -241,8 +260,8 @@ class CrosshairArea extends StatelessWidget {
       crosshairTick!,
       quoteToCanvasY,
       xAxis.xFromEpoch(crosshairTick!.epoch),
-      // Use a reasonable default element width (6% of the granularity width)
-      (xAxis.xFromEpoch(xAxis.granularity) - xAxis.xFromEpoch(0)) * 0.6,
+      xAxis.granularity,
+      xAxis.xFromEpoch,
       theme,
     );
 
