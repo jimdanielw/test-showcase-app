@@ -194,11 +194,15 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
       xAxisModel: xAxis,
       series: widget.mainSeries as DataSeries<Tick>,
       onCrosshairAppeared: () {
-        crosshairZoomOutAnimationController.forward();
+        if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+          crosshairZoomOutAnimationController.forward();
+        }
         widget.onCrosshairAppeared?.call();
       },
       onCrosshairDisappeared: () {
-        crosshairZoomOutAnimationController.reverse();
+        if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+          crosshairZoomOutAnimationController.reverse();
+        }
         widget.onCrosshairDisappeared?.call();
       },
       showCrosshair: widget.showCrosshair,
