@@ -51,7 +51,7 @@ class HollowCandleSeries extends OHLCTypeSeries {
   /// Returns:
   /// A CrosshairHollowCandleHighlightPainter that will paint the highlighted hollow candle.
   @override
-  CrosshairHighlightPainter? getCrosshairHighlightPainter(
+  CrosshairHighlightPainter getCrosshairHighlightPainter(
     Candle crosshairTick,
     double Function(double) quoteToY,
     double xCenter,

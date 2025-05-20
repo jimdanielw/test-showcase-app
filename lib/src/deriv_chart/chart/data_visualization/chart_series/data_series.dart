@@ -367,16 +367,12 @@ abstract class DataSeries<T extends Tick> extends Series {
   /// Returns:
   /// A CrosshairHighlightPainter that will paint the highlighted element, or null if
   /// no highlighting is needed for this series type.
-  CrosshairHighlightPainter? getCrosshairHighlightPainter(
+  CrosshairHighlightPainter getCrosshairHighlightPainter(
     T crosshairTick,
     double Function(double) quoteToY,
     double xCenter,
     int granularity,
     double Function(int) xFromEpoch,
     ChartTheme theme,
-  ) {
-    // Default implementation returns null
-    // Subclasses should override this to provide appropriate highlight painters
-    return null;
-  }
+  );
 }

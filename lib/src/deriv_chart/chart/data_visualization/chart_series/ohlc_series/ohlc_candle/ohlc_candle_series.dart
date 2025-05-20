@@ -50,7 +50,7 @@ class OhlcCandleSeries extends OHLCTypeSeries {
   /// Returns:
   /// A CrosshairOhlcHighlightPainter that will paint the highlighted OHLC candle.
   @override
-  CrosshairHighlightPainter? getCrosshairHighlightPainter(
+  CrosshairHighlightPainter getCrosshairHighlightPainter(
     Candle crosshairTick,
     double Function(double) quoteToY,
     double xCenter,
