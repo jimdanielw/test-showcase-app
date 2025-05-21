@@ -369,6 +369,7 @@ class _InteractiveLayerGestureHandlerState
   @override
   void dispose() {
     _drawingToolGestureRecognizer.dispose();
+    _stateChangeController.dispose();
     super.dispose();
   }
 
