@@ -447,6 +447,10 @@ class _InteractiveLayerGestureHandlerState
     // Just delegate to the interactive state and update the mode
     _interactiveState.onPanStart(details);
     _updateInteractionMode(InteractionMode.drawingTool);
+
+    // Hide the crosshair when starting to drag a drawing tool
+    widget.crosshairController.onExit(const PointerExitEvent());
+
     _interactionNotifier.notify();
   }
 
@@ -456,6 +460,11 @@ class _InteractiveLayerGestureHandlerState
 
     if (affectingDrawing) {
       _updateInteractionMode(InteractionMode.drawingTool);
+
+      // Ensure crosshair remains hidden during drawing tool drag
+      if (widget.crosshairController.value.isVisible) {
+        widget.crosshairController.onExit(const PointerExitEvent());
+      }
     }
     _interactionNotifier.notify();
   }
@@ -473,7 +482,6 @@ class _InteractiveLayerGestureHandlerState
   }
 
   void _handleHover(PointerHoverEvent event, XAxisModel xAxis) {
-
     final newMouseCursor = _getMouseCursor(event.localPosition, xAxis);
     if (_mouseCursor != newMouseCursor) {
       setState(() {
@@ -491,13 +499,6 @@ class _InteractiveLayerGestureHandlerState
 
     // For small screen variant, we don't show the crosshair on hover
     if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
-      return;
-    }
-
-    // Handle crosshair visibility based on the interaction mode
-    if (_currentInteractionMode == InteractionMode.drawingTool) {
-      // If we're in drawing tool mode, hide the crosshair
-      widget.crosshairController.onExit(const PointerExitEvent());
       return;
     }
 
@@ -588,7 +589,6 @@ class _InteractiveLayerGestureHandlerState
         return MouseRegion(
           onHover: (event) => _handleHover(event, xAxis),
           onExit: _handleExit,
-          // cursor: _getMouseCursor(_cursorPosition, xAxis),
           cursor: _mouseCursor,
           child: RawGestureDetector(
             gestures: <Type, GestureRecognizerFactory>{
