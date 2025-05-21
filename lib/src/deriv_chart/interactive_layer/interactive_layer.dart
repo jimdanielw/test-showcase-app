@@ -474,10 +474,10 @@ class _InteractiveLayerGestureHandlerState
 
   void _handleHover(PointerHoverEvent event, XAxisModel xAxis) {
 
-    final _newMouseCursor = _getMouseCursor(event.localPosition, xAxis);
-    if (_mouseCursor != _newMouseCursor) {
+    final newMouseCursor = _getMouseCursor(event.localPosition, xAxis);
+    if (_mouseCursor != newMouseCursor) {
       setState(() {
-        _mouseCursor = _newMouseCursor;
+        _mouseCursor = newMouseCursor;
       });
     }
     final bool hitDrawing = _interactiveState.onHover(event);
