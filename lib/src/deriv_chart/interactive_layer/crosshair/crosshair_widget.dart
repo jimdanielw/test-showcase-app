@@ -58,7 +58,7 @@ class CrosshairWidget extends StatelessWidget {
         }
         return AnimatedBuilder(
           animation: crosshairZoomOutAnimation,
-          builder: (BuildContext context, _) {
+          builder: (_, __) {
             return RepaintBoundary(
               child: CrosshairArea(
                 mainSeries: mainSeries,
