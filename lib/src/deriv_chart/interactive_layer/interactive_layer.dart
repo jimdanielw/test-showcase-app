@@ -432,8 +432,7 @@ class _InteractiveLayerGestureHandlerState
 
   // Check if a point hits any drawing
   bool _hitTestDrawings(Offset localPosition) {
-    for (final drawing
-        in widget.drawings.cast<InteractableDrawing<DrawingToolConfig>>()) {
+    for (final drawing in widget.drawings) {
       if (drawing.hitTest(localPosition, epochToX, quoteToY)) {
         return true;
       }
