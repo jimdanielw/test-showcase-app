@@ -84,7 +84,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
       offset: Offset.zero);
 
   /// Updates the drag velocity based on current position and previous position.
-  void updateDragVelocity(Offset currentOffset) {
+  void _updateDragVelocity(Offset currentOffset) {
     final DateTime currentTime = DateTime.now();
     final Duration timeDiff = currentTime.difference(_previousTime);
     final Offset offsetDiff = currentOffset - _previousOffset;
@@ -156,7 +156,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   /// Called when a long press is updated.
   void onLongPressUpdate(LongPressMoveUpdateDetails details) {
     // Update drag velocity with the latest gesture data
-    updateDragVelocity(details.localPosition);
+    _updateDragVelocity(details.localPosition);
 
     final double x = details.localPosition.dx;
     final int epoch = xAxisModel.epochFromX(x);
