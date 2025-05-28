@@ -11,6 +11,7 @@ class CrosshairWidget extends StatelessWidget {
   const CrosshairWidget({
     required this.mainSeries,
     required this.quoteToCanvasY,
+    required this.quoteFromCanvasY,
     required this.pipSize,
     required this.crosshairController,
     required this.crosshairZoomOutAnimation,
@@ -24,6 +25,9 @@ class CrosshairWidget extends StatelessWidget {
 
   /// Function to convert quote values to canvas Y coordinates.
   final double Function(double) quoteToCanvasY;
+
+  /// Function to convert canvas Y coordinates back to quote values.
+  final double Function(double) quoteFromCanvasY;
 
   /// Number of decimal digits when showing prices in the crosshair.
   final int pipSize;
@@ -64,6 +68,7 @@ class CrosshairWidget extends StatelessWidget {
                 mainSeries: mainSeries,
                 pipSize: pipSize,
                 quoteToCanvasY: quoteToCanvasY,
+                quoteFromCanvasY: quoteFromCanvasY,
                 crosshairTick: state.crosshairTick,
                 cursorPosition: state.cursorPosition,
                 animationDuration: crosshairController.animationDuration,

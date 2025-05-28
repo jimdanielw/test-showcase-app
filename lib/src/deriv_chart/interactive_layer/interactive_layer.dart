@@ -638,6 +638,7 @@ class _InteractiveLayerGestureHandlerState
                           CrosshairWidget(
                             mainSeries: widget.series,
                             quoteToCanvasY: widget.quoteToY,
+                            quoteFromCanvasY: widget.quoteFromY,
                             pipSize: widget.pipSize,
                             crosshairController: widget.crosshairController,
                             crosshairZoomOutAnimation:

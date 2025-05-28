@@ -26,6 +26,7 @@ class CrosshairArea extends StatelessWidget {
   const CrosshairArea({
     required this.mainSeries,
     required this.quoteToCanvasY,
+    required this.quoteFromCanvasY,
     required this.crosshairTick,
     required this.cursorPosition,
     required this.animationDuration,
@@ -42,6 +43,9 @@ class CrosshairArea extends StatelessWidget {
 
   /// Conversion function for converting quote to chart's canvas' Y position.
   final double Function(double) quoteToCanvasY;
+
+  /// Conversion function for converting chart's canvas' Y position to quote.
+  final double Function(double) quoteFromCanvasY;
 
   /// The tick to display in the crosshair.
   final Tick? crosshairTick;
@@ -169,7 +173,7 @@ class CrosshairArea extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  crosshairTick!.quote.toStringAsFixed(pipSize),
+                  quoteFromCanvasY(cursorPosition.dy).toStringAsFixed(pipSize),
                   style: theme.crosshairAxisLabelStyle.copyWith(
                     color: theme.crosshairInformationBoxTextDefault,
                   ),
