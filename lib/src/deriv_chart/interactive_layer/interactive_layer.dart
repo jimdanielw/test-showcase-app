@@ -497,8 +497,9 @@ class _InteractiveLayerGestureHandlerState
     _updateInteractionMode(
         hitDrawing ? InteractionMode.drawingTool : InteractionMode.none);
 
-    // For small screen variant, we don't show the crosshair on hover
-    if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+    // For small screen variant, we don't show the crosshair on hover, as well as if we're in adding tool state
+    if (widget.crosshairVariant == CrosshairVariant.smallScreen ||
+        (_interactiveState is InteractiveAddingToolState)) {
       return;
     }
 
