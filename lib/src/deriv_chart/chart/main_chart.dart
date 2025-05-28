@@ -449,6 +449,7 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
             crosshairController: crosshairController,
             crosshairVariant: widget.crosshairVariant,
             crosshairZoomOutAnimation: crosshairZoomOutAnimation,
+            pipSize: widget.pipSize,
           );
         },
       );
