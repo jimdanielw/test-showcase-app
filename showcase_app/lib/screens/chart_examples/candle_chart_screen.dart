@@ -21,6 +21,7 @@ class _CandleChartScreenState extends BaseChartScreenState<CandleChartScreen> {
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
   bool _useDarkTheme = false;
+  bool _useDrawingToolsV2 = true;
 
   @override
   String getTitle() => 'Candle Chart';
@@ -56,6 +57,7 @@ class _CandleChartScreenState extends BaseChartScreenState<CandleChartScreen> {
           ? CrosshairVariant.largeScreen
           : CrosshairVariant.smallScreen,
       theme: _useDarkTheme ? ChartDefaultDarkTheme() : ChartDefaultLightTheme(),
+      useDrawingToolsV2: _useDrawingToolsV2,
     );
   }
 
@@ -116,6 +118,24 @@ class _CandleChartScreenState extends BaseChartScreenState<CandleChartScreen> {
                   child: Text(
                     'Crosshair: ${_useLargeScreenCrosshair ? 'Large' : 'Small'}',
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Drawing Tools V2 toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Drawing Tools V2:'),
+                const SizedBox(width: 8),
+                Switch(
+                  value: _useDrawingToolsV2,
+                  onChanged: (value) {
+                    setState(() {
+                      _useDrawingToolsV2 = value;
+                    });
+                  },
                 ),
               ],
             ),

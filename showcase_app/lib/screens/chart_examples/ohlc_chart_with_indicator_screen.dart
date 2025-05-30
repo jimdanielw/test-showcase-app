@@ -41,6 +41,7 @@ class _OHLCChartWithIndicatorScreenState
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
   bool _useDarkTheme = false;
+  bool _useDrawingToolsV2 = true;
 
   // Create an indicators repository to manage indicators
   late final Repository<IndicatorConfig> _indicatorsRepo;
@@ -102,6 +103,7 @@ class _OHLCChartWithIndicatorScreenState
           ? CrosshairVariant.largeScreen
           : CrosshairVariant.smallScreen,
       theme: _useDarkTheme ? ChartDefaultDarkTheme() : ChartDefaultLightTheme(),
+      useDrawingToolsV2: _useDrawingToolsV2,
     );
   }
 
@@ -166,6 +168,24 @@ class _OHLCChartWithIndicatorScreenState
           ),
           const SizedBox(height: 16),
 
+          // Drawing Tools V2 toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('Drawing Tools V2:'),
+              const SizedBox(width: 8),
+              Switch(
+                value: _useDrawingToolsV2,
+                onChanged: (value) {
+                  setState(() {
+                    _useDrawingToolsV2 = value;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
           // Bollinger Bands Indicator controls
           Row(
             children: [
@@ -183,65 +203,58 @@ class _OHLCChartWithIndicatorScreenState
             ],
           ),
           if (_showBollingerBands) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Period:'),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Slider(
-                      value: _bollingerPeriod.toDouble(),
-                      min: 5,
-                      max: 50,
-                      divisions: 45,
-                      label: _bollingerPeriod.toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          _bollingerPeriod = value.toInt();
-                          _updateIndicators();
-                        });
-                      },
-                    ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Text('Period:'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Slider(
+                    value: _bollingerPeriod.toDouble(),
+                    min: 5,
+                    max: 50,
+                    divisions: 45,
+                    label: _bollingerPeriod.toString(),
+                    onChanged: (value) {
+                      setState(() {
+                        _bollingerPeriod = value.toInt();
+                        _updateIndicators();
+                      });
+                    },
                   ),
-                  SizedBox(
-                    width: 30,
-                    child: Text(_bollingerPeriod.toString(),
-                        textAlign: TextAlign.center),
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  width: 30,
+                  child: Text(_bollingerPeriod.toString(),
+                      textAlign: TextAlign.center),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Deviation:'),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Slider(
-                      value: _bollingerDeviation,
-                      min: 1,
-                      max: 4,
-                      divisions: 6,
-                      label: _bollingerDeviation.toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          _bollingerDeviation = value;
-                          _updateIndicators();
-                        });
-                      },
-                    ),
+            Row(
+              children: [
+                const Text('Deviation:'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Slider(
+                    value: _bollingerDeviation,
+                    min: 1,
+                    max: 4,
+                    divisions: 6,
+                    label: _bollingerDeviation.toString(),
+                    onChanged: (value) {
+                      setState(() {
+                        _bollingerDeviation = value;
+                        _updateIndicators();
+                      });
+                    },
                   ),
-                  SizedBox(
-                    width: 30,
-                    child: Text(_bollingerDeviation.toString(),
-                        textAlign: TextAlign.center),
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  width: 30,
+                  child: Text(_bollingerDeviation.toString(),
+                      textAlign: TextAlign.center),
+                ),
+              ],
             ),
           ],
           const SizedBox(height: 16),

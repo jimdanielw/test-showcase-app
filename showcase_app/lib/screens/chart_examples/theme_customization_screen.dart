@@ -144,6 +144,7 @@ class _ThemeCustomizationScreenState
   bool _useCustomTheme = false;
   bool _showCrosshair = true;
   bool _useLargeScreenCrosshair = kIsWeb; // Default based on platform
+  bool _useDrawingToolsV2 = true;
 
   // Custom theme colors
   Color _gridColor = const Color(0xFF323738);
@@ -192,6 +193,7 @@ class _ThemeCustomizationScreenState
       crosshairVariant: _useLargeScreenCrosshair
           ? CrosshairVariant.largeScreen
           : CrosshairVariant.smallScreen,
+      useDrawingToolsV2: _useDrawingToolsV2,
     );
   }
 
@@ -297,6 +299,21 @@ class _ThemeCustomizationScreenState
                 child: Text(
                   'Crosshair Style: ${_useLargeScreenCrosshair ? 'Large' : 'Small'}',
                 ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Drawing Tools V2:'),
+                  const SizedBox(width: 8),
+                  Switch(
+                    value: _useDrawingToolsV2,
+                    onChanged: (value) {
+                      setState(() {
+                        _useDrawingToolsV2 = value;
+                      });
+                    },
+                  ),
+                ],
               ),
             ],
           ),
