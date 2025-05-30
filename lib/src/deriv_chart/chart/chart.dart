@@ -198,6 +198,7 @@ class Chart extends StatefulWidget {
   /// The default is [CrosshairVariant.smallScreen].
   /// [CrosshairVariant.largeScreen] is mostly for web.
   final CrosshairVariant crosshairVariant;
+
   /// The interactive layer behaviour.
   final InteractiveLayerBehaviour? interactiveLayerBehaviour;
 

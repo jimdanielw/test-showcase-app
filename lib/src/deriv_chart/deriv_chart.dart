@@ -191,6 +191,7 @@ class DerivChart extends StatefulWidget {
   /// The default is [CrosshairVariant.smallScreen].
   /// [CrosshairVariant.largeScreen] is mostly for web.
   final CrosshairVariant crosshairVariant;
+
   /// Defines the behaviour that interactive layer should have.
   ///
   /// Interactive layer is the layer on top of the chart responsible for
