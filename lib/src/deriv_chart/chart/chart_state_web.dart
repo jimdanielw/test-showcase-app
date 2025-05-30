@@ -47,6 +47,8 @@ class _ChartStateWeb extends _ChartState {
             showCurrentTickBlinkAnimation:
                 widget.showCurrentTickBlinkAnimation ?? true,
             crosshairVariant: widget.crosshairVariant,
+            interactiveLayerBehaviour: widget.interactiveLayerBehaviour,
+            useDrawingToolsV2: widget.useDrawingToolsV2,
           ),
         ),
         if (bottomSeries?.isNotEmpty ?? false)

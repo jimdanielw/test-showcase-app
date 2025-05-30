@@ -1,12 +1,12 @@
 import 'package:deriv_chart/src/add_ons/drawing_tools_ui/drawing_tool_config.dart';
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/interactable_drawings/drawing_adding_preview.dart';
 import 'package:flutter/gestures.dart';
 
 import '../enums/drawing_tool_state.dart';
-import '../interactable_drawings/interactable_drawing.dart';
+import '../interactable_drawings/drawing_v2.dart';
 import '../enums/state_change_direction.dart';
 import 'interactive_hover_state.dart';
 import 'interactive_normal_state.dart';
-import 'interactive_selected_tool_state.dart';
 import 'interactive_state.dart';
 
 /// The state of the interactive layer when a tool is being added.
@@ -28,9 +28,10 @@ class InteractiveAddingToolState extends InteractiveState
   /// access to the layer's methods and properties.
   InteractiveAddingToolState(
     this.addingTool, {
-    required super.interactiveLayer,
+    required super.interactiveLayerBehaviour,
   }) {
-    _addingDrawing ??= addingTool.getInteractableDrawing();
+    _drawingPreview ??= interactiveLayerBehaviour
+        .getAddingDrawingPreview(addingTool.getInteractableDrawing());
   }
 
   /// The tool being added.
@@ -39,27 +40,102 @@ class InteractiveAddingToolState extends InteractiveState
   /// when the user taps on the chart.
   final DrawingToolConfig addingTool;
 
+  bool _isAddingToolBeingDragged = false;
+
   /// The drawing that is currently being created.
   ///
   /// This is initialized when the user first taps on the chart and is used
   /// to render a preview of the drawing being added.
-  InteractableDrawing<DrawingToolConfig>? _addingDrawing;
+  DrawingAddingPreview? _drawingPreview;
+
+  /// Getter to get the [_drawingPreview] instance.
+  DrawingAddingPreview? get addingDrawingPreview => _drawingPreview;
 
   @override
-  List<InteractableDrawing<DrawingToolConfig>> get previewDrawings =>
-      [if (_addingDrawing != null) _addingDrawing!];
+  List<DrawingV2> get previewDrawings =>
+      [if (_drawingPreview != null) _drawingPreview!];
 
   @override
-  Set<DrawingToolState> getToolState(
-    InteractableDrawing<DrawingToolConfig> drawing,
-  ) =>
-      drawing.config.configId == addingTool.configId
-          ? {DrawingToolState.adding}
-          : {DrawingToolState.idle};
+  Set<DrawingToolState> getToolState(DrawingV2 drawing) {
+    final String? addingDrawingId = _drawingPreview != null
+        ? interactiveLayerBehaviour
+            .getAddingDrawingPreview(_drawingPreview!.interactableDrawing)
+            .id
+        : null;
+
+    final Set<DrawingToolState> states = drawing.id == addingDrawingId
+        ? {
+            DrawingToolState.adding,
+            if (_isAddingToolBeingDragged) DrawingToolState.dragging
+          }
+        : {DrawingToolState.normal};
+
+    return states;
+  }
+
+  @override
+  bool onPanEnd(DragEndDetails details) {
+    if (_isAddingToolBeingDragged) {
+      _drawingPreview?.onDragEnd(
+          details, epochFromX, quoteFromY, epochToX, quoteToY);
+
+      _isAddingToolBeingDragged = false;
+      return true; // Ended dragging the tool being added. Jim - Verify this
+    }
+
+    // To trigger the animation of the interactive layer, so the adding preview
+    // can perform its revers dragging effect animation.
+    interactiveLayerBehaviour.updateStateTo(
+      this,
+      StateChangeAnimationDirection.backward,
+    );
+    return false; // Not dragging the tool being added. Jim - Verify this
+  }
+
+  @override
+  bool onPanStart(DragStartDetails details) {
+    if (_drawingPreview?.hitTest(details.localPosition, epochToX, quoteToY) ??
+        false) {
+      // To trigger the animation of the interactive layer, so the adding
+      // preview can perform its forward dragging effect animation.
+      interactiveLayerBehaviour.updateStateTo(
+        this,
+        StateChangeAnimationDirection.forward,
+      );
+
+      _isAddingToolBeingDragged = true;
+      _drawingPreview!.onDragStart(
+        details,
+        epochFromX,
+        quoteFromY,
+        epochToX,
+        quoteToY,
+      );
+      return true; // Started dragging the tool being added. Jim - Verify this
+    } else {
+      _isAddingToolBeingDragged = false;
+      return false; // Not dragging the tool being added. Jim - Verify this
+    }
+  }
+
+  @override
+  bool onPanUpdate(DragUpdateDetails details) {
+    if (_isAddingToolBeingDragged) {
+      _drawingPreview?.onDragUpdate(
+        details,
+        epochFromX,
+        quoteFromY,
+        epochToX,
+        quoteToY,
+      );
+      return true; // Dragging the adding tool. Jim - Verify this
+    }
+    return false; // Not dragging the adding tool. Jim - Verify this
+  }
 
   @override
   bool onHover(PointerHoverEvent event) {
-    _addingDrawing?.onHover(
+    _drawingPreview?.onHover(
       event,
       epochFromX,
       quoteFromY,
@@ -72,27 +148,19 @@ class InteractiveAddingToolState extends InteractiveState
 
   @override
   bool onTap(TapUpDetails details) {
-    _addingDrawing!
+    _drawingPreview!
         .onCreateTap(details, epochFromX, quoteFromY, epochToX, quoteToY, () {
-      interactiveLayer.clearAddingDrawing();
+      interactiveLayerBehaviour.updateStateTo(
+        InteractiveNormalState(
+          interactiveLayerBehaviour: interactiveLayerBehaviour,
+        ),
+        StateChangeAnimationDirection.forward,
+      );
 
-      final DrawingToolConfig addedConfig =
-          interactiveLayer.onAddDrawing(_addingDrawing!);
-
-      for (final drawing in interactiveLayer.drawings) {
-        if (drawing.config.configId == addedConfig.configId) {
-          interactiveLayer.updateStateTo(
-            InteractiveSelectedToolState(
-              selected: drawing,
-              interactiveLayer: interactiveLayer,
-            ),
-            StateChangeAnimationDirection.forward,
-          );
-          break;
-        }
-      }
+      interactiveLayer
+        ..clearAddingDrawing()
+        ..addDrawing(_drawingPreview!.interactableDrawing);
     });
-
     return true; // Always return true as we're in adding mode
   }
 }

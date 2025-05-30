@@ -16,7 +16,10 @@ import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
 import 'package:deriv_chart/src/models/chart_config.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../drawing_tool_chart/drawing_tool_chart.dart';
 import '../interactive_layer/interactive_layer.dart';
+import '../interactive_layer/interactive_layer_behaviours/interactive_layer_behaviour.dart';
+import '../interactive_layer/interactive_layer_behaviours/interactive_layer_desktop_behaviour.dart';
 import 'basic_chart.dart';
 import 'multiple_animated_builder.dart';
 import 'data_visualization/annotations/chart_annotation.dart';
@@ -62,6 +65,8 @@ class MainChart extends BasicChart {
     double opacity = 1,
     ChartAxisConfig? chartAxisConfig,
     VisibleQuoteAreaChangedCallback? onQuoteAreaChanged,
+    this.interactiveLayerBehaviour,
+    this.useDrawingToolsV2 = false,
   })  : _mainSeries = mainSeries,
         chartDataList = <ChartData>[
           mainSeries,
@@ -76,6 +81,9 @@ class MainChart extends BasicChart {
           chartAxisConfig: chartAxisConfig,
           onQuoteAreaChanged: onQuoteAreaChanged,
         );
+
+  /// Whether to use the new drawing tools v2 or not.
+  final bool useDrawingToolsV2;
 
   /// The indicator series that are displayed on the main chart.
   final List<Series>? overlaySeries;
@@ -131,6 +139,10 @@ class MainChart extends BasicChart {
   /// Whether to show current tick blink animation or not.
   final bool showCurrentTickBlinkAnimation;
 
+  /// Defines the interactive layer behaviour. like when adding a tools or
+  /// dragging/hovering.
+  final InteractiveLayerBehaviour? interactiveLayerBehaviour;
+
   /// The variant of the crosshair to be used.
   /// This is used to determine the type of crosshair to display.
   /// The default is [CrosshairVariant.smallScreen].
@@ -164,6 +176,8 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
 
   final YAxisNotifier _yAxisNotifier = YAxisNotifier(YAxisModel.zero());
 
+  late final InteractiveLayerBehaviour _interactiveLayerBehaviour;
+
   @override
   double get verticalPadding {
     if (canvasSize == null) {
@@ -187,9 +201,14 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
   void initState() {
     super.initState();
 
+    // TODO(Ramin): mention in the document to customize or go with default.
+    _interactiveLayerBehaviour =
+        widget.interactiveLayerBehaviour ?? InteractiveLayerDesktopBehaviour();
+
     if (widget.verticalPaddingFraction != null) {
       verticalPaddingFraction = widget.verticalPaddingFraction!;
     }
+
     _setupController();
     _setupCrosshairController();
   }
@@ -216,7 +235,28 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
       minEpoch: widget.chartDataList.getMinEpoch(),
       maxEpoch: widget.chartDataList.getMaxEpoch(),
     );
+
     crosshairController.series = widget.mainSeries as DataSeries<Tick>;
+  }
+
+  void _setupCrosshairController() {
+    crosshairController = CrosshairController(
+      xAxisModel: xAxis,
+      series: widget.mainSeries as DataSeries<Tick>,
+      onCrosshairAppeared: () {
+        if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+          crosshairZoomOutAnimationController.forward();
+        }
+        widget.onCrosshairAppeared?.call();
+      },
+      onCrosshairDisappeared: () {
+        if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
+          crosshairZoomOutAnimationController.reverse();
+        }
+        widget.onCrosshairDisappeared?.call();
+      },
+      showCrosshair: widget.showCrosshair,
+    );
   }
 
   void _updateBlinkingAnimationStatus() {
@@ -310,26 +350,6 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
     );
   }
 
-  void _setupCrosshairController() {
-    crosshairController = CrosshairController(
-      xAxisModel: xAxis,
-      series: widget.mainSeries as DataSeries<Tick>,
-      onCrosshairAppeared: () {
-        if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
-          crosshairZoomOutAnimationController.forward();
-        }
-        widget.onCrosshairAppeared?.call();
-      },
-      onCrosshairDisappeared: () {
-        if (widget.crosshairVariant == CrosshairVariant.smallScreen) {
-          crosshairZoomOutAnimationController.reverse();
-        }
-        widget.onCrosshairDisappeared?.call();
-      },
-      showCrosshair: widget.showCrosshair,
-    );
-  }
-
   @override
   List<Listenable> getQuoteGridAnimations() =>
       super.getQuoteGridAnimations()..add(crosshairZoomOutAnimation);
@@ -398,11 +418,10 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
                   _buildSeries(widget.overlaySeries!),
                 _buildAnnotations(),
                 if (widget.markerSeries != null) _buildMarkerArea(),
-                // TODO(Jim): Remove this when the drawing tools from the interactive layer are implemented
-                // if (widget.drawingTools != null)
-                //     _buildDrawingToolChart(widget.drawingTools!),
-                if (widget.drawingTools != null)
-                  _buildInteractiveLayer(context, xAxis),
+                if (widget.drawingTools != null && widget.useDrawingToolsV2)
+                  _buildInteractiveLayer(context, xAxis)
+                else if (widget.drawingTools != null)
+                  _buildDrawingToolChart(widget.drawingTools!),
                 if (widget.showScrollToLastTickButton &&
                     _isScrollToLastTickAvailable)
                   Positioned(
@@ -446,6 +465,7 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
               bottomQuote:
                   chartQuoteFromCanvasY(_yAxisNotifier.value.canvasHeight),
             ),
+            interactiveLayerBehaviour: _interactiveLayerBehaviour,
             crosshairController: crosshairController,
             crosshairVariant: widget.crosshairVariant,
             crosshairZoomOutAnimation: crosshairZoomOutAnimation,
@@ -454,20 +474,20 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
         },
       );
 
-// TODO(Jim): Remove this when the drawing tools from the interactive layer are implemented
-  // Widget _buildDrawingToolChart(DrawingTools drawingTools) =>
-  //     MultipleAnimatedBuilder(
-  //       animations: <Listenable>[
-  //         topBoundQuoteAnimationController,
-  //         bottomBoundQuoteAnimationController,
-  //       ],
-  //       builder: (_, Widget? child) => DrawingToolChart(
-  //         series: widget.mainSeries as DataSeries<Tick>,
-  //         chartQuoteToCanvasY: chartQuoteToCanvasY,
-  //         chartQuoteFromCanvasY: chartQuoteFromCanvasY,
-  //         drawingTools: drawingTools,
-  //       ),
-  //     );
+  // ignore: unused_element
+  Widget _buildDrawingToolChart(DrawingTools drawingTools) =>
+      MultipleAnimatedBuilder(
+        animations: <Listenable>[
+          topBoundQuoteAnimationController,
+          bottomBoundQuoteAnimationController,
+        ],
+        builder: (_, Widget? child) => DrawingToolChart(
+          series: widget.mainSeries as DataSeries<Tick>,
+          chartQuoteToCanvasY: chartQuoteToCanvasY,
+          chartQuoteFromCanvasY: chartQuoteFromCanvasY,
+          drawingTools: drawingTools,
+        ),
+      );
 
   Widget _buildLoadingAnimation() => LoadingAnimationArea(
         loadingRightBoundX: widget._mainSeries.input.isEmpty
