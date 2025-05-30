@@ -64,15 +64,20 @@ class CrosshairWidget extends StatelessWidget {
           animation: crosshairZoomOutAnimation,
           builder: (_, __) {
             return RepaintBoundary(
-              child: CrosshairArea(
-                mainSeries: mainSeries,
-                pipSize: pipSize,
-                quoteToCanvasY: quoteToCanvasY,
-                quoteFromCanvasY: quoteFromCanvasY,
-                crosshairTick: state.crosshairTick,
-                cursorPosition: state.cursorPosition,
-                animationDuration: crosshairController.animationDuration,
-                crosshairVariant: crosshairVariant,
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: const TextScaler.linear(1),
+                ),
+                child: CrosshairArea(
+                  mainSeries: mainSeries,
+                  pipSize: pipSize,
+                  quoteToCanvasY: quoteToCanvasY,
+                  quoteFromCanvasY: quoteFromCanvasY,
+                  crosshairTick: state.crosshairTick,
+                  cursorPosition: state.cursorPosition,
+                  animationDuration: crosshairController.animationDuration,
+                  crosshairVariant: crosshairVariant,
+                ),
               ),
             );
           },
