@@ -382,7 +382,7 @@ class _InteractiveLayerGestureHandlerState
       onDrawingToolPanUpdate: _handleDrawingToolPanUpdate,
       onDrawingToolPanEnd: _handleDrawingToolPanEnd,
       onDrawingToolPanCancel: _handleDrawingToolPanCancel,
-      hitTest: _hitTestDrawings,
+      hitTest: widget.interactiveLayerBehaviour.hitTestDrawings,
       onCrosshairCancel: _cancelCrosshair,
       debugOwner: this,
     );
@@ -436,16 +436,6 @@ class _InteractiveLayerGestureHandlerState
       widget.crosshairController.onExit(const PointerExitEvent());
       _updateInteractionMode(InteractionMode.none);
     }
-  }
-
-  // Check if a point hits any drawing
-  bool _hitTestDrawings(Offset localPosition) {
-    for (final drawing in widget.drawings) {
-      if (drawing.hitTest(localPosition, epochToX, quoteToY)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   // Handle drawing tool pan start
@@ -529,7 +519,7 @@ class _InteractiveLayerGestureHandlerState
     }
 
     // Check if we're over a drawing (clickable element)
-    if (_hitTestDrawings(localPosition)) {
+    if (widget.interactiveLayerBehaviour.hitTestDrawings(localPosition)) {
       return SystemMouseCursors.click;
     }
 
@@ -595,7 +585,7 @@ class _InteractiveLayerGestureHandlerState
       onDrawingToolPanUpdate: _handleDrawingToolPanUpdate,
       onDrawingToolPanEnd: _handleDrawingToolPanEnd,
       onDrawingToolPanCancel: _handleDrawingToolPanCancel,
-      hitTest: _hitTestDrawings,
+      hitTest: widget.interactiveLayerBehaviour.hitTestDrawings,
       onCrosshairCancel: _cancelCrosshair,
     );
     return LayoutBuilder(builder: (_, BoxConstraints constraints) {
