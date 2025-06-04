@@ -8,7 +8,6 @@ import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshai
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_variant.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_widget.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/drawing_tool_gesture_recognizer.dart';
-import 'package:deriv_chart/src/deriv_chart/interactive_layer/interactive_layer_states/interactive_adding_tool_state.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/interactive_layer_states/interactive_selected_tool_state.dart';
 import 'package:deriv_chart/src/models/axis_range.dart';
 import 'package:deriv_chart/src/models/chart_config.dart';
@@ -498,19 +497,23 @@ class _InteractiveLayerGestureHandlerState
         _mouseCursor = newMouseCursor;
       });
     }
-    final bool hitDrawing = widget.interactiveLayerBehaviour.onHover(event);
+    final bool layerConsumingHover =
+        widget.interactiveLayerBehaviour.onHover(event);
+
     _interactionNotifier.notify();
 
     // Determine the appropriate interaction mode based on current state
     // If we're hovering over a drawing, we should be in drawing tool mode
     // Otherwise, we should be in normal mode.
     _updateInteractionMode(
-        hitDrawing ? InteractionMode.drawingTool : InteractionMode.none);
+      layerConsumingHover ? InteractionMode.drawingTool : InteractionMode.none,
+    );
 
     // For small screen variant, we don't show the crosshair on hover, as well as if we're in adding tool state
     if (widget.crosshairVariant == CrosshairVariant.smallScreen ||
-        (widget.interactiveLayerBehaviour.currentState
-            is InteractiveAddingToolState)) {
+        layerConsumingHover) {
+      // InteractiveLayer is consuming the hover, we should not let the
+      // crosshair controller handle it
       return;
     }
 

@@ -31,6 +31,7 @@ class CrosshairArea extends StatelessWidget {
     required this.cursorPosition,
     required this.animationDuration,
     required this.crosshairVariant,
+    required this.isTickWithinDataRange,
     this.pipSize = 4,
     Key? key,
   }) : super(key: key);
@@ -61,6 +62,13 @@ class CrosshairArea extends StatelessWidget {
   /// The default is [CrosshairVariant.smallScreen].
   /// [CrosshairVariant.largeScreen] is mostly for web.
   final CrosshairVariant crosshairVariant;
+
+  /// Whether the current tick is within the actual data range.
+  /// When false, the tick is a virtual tick created for cursor positions outside data range.
+  /// This is used to determine whether to show the crosshair highlight.
+  /// If true, the crosshair will highlight the tick; if false, it will not.
+  /// This is useful for distinguishing between actual data points and virtual ticks.
+  final bool isTickWithinDataRange;
 
   /// Calculates the optimal vertical position for the crosshair details box.
   ///
@@ -156,8 +164,9 @@ class CrosshairArea extends StatelessWidget {
                 : null,
           ),
         ),
-        _buildCrosshairTickHightlight(
-            constraints: constraints, xAxis: xAxis, theme: theme),
+        if (isTickWithinDataRange)
+          _buildCrosshairTickHightlight(
+              constraints: constraints, xAxis: xAxis, theme: theme),
         // Add crosshair quote label at the right side of the chart
         if (crosshairVariant != CrosshairVariant.smallScreen &&
             cursorPosition.dy > 0)
@@ -206,29 +215,33 @@ class CrosshairArea extends StatelessWidget {
               ),
             ),
           ),
-        AnimatedPositioned(
-          duration: animationDuration,
-          // Position the details above the cursor with a gap
-          // Use cursorY which is the cursor's Y position
-          // Subtract the height of the details box plus a gap
-          top: crosshairVariant == CrosshairVariant.smallScreen
-              ? 8
-              : _calculateDetailsPosition(cursorY: cursorPosition.dy),
-          bottom: 0,
-          width: constraints.maxWidth,
-          left:
-              xAxis.xFromEpoch(crosshairTick!.epoch) - constraints.maxWidth / 2,
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: CrosshairDetails(
-              mainSeries: mainSeries,
-              crosshairTick: crosshairTick!,
-              pipSize: pipSize,
-              crosshairVariant: crosshairVariant,
-            ),
-          ),
-        ),
+        if (isTickWithinDataRange) _buildCrosshairDetails(constraints, xAxis),
       ],
+    );
+  }
+
+  AnimatedPositioned _buildCrosshairDetails(
+      BoxConstraints constraints, XAxisModel xAxis) {
+    return AnimatedPositioned(
+      duration: animationDuration,
+      // Position the details above the cursor with a gap
+      // Use cursorY which is the cursor's Y position
+      // Subtract the height of the details box plus a gap
+      top: crosshairVariant == CrosshairVariant.smallScreen
+          ? 8
+          : _calculateDetailsPosition(cursorY: cursorPosition.dy),
+      bottom: 0,
+      width: constraints.maxWidth,
+      left: xAxis.xFromEpoch(crosshairTick!.epoch) - constraints.maxWidth / 2,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: CrosshairDetails(
+          mainSeries: mainSeries,
+          crosshairTick: crosshairTick!,
+          pipSize: pipSize,
+          crosshairVariant: crosshairVariant,
+        ),
+      ),
     );
   }
 

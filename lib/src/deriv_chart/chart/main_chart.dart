@@ -256,6 +256,7 @@ class _ChartImplementationState extends BasicChartState<MainChart> {
         widget.onCrosshairDisappeared?.call();
       },
       showCrosshair: widget.showCrosshair,
+      quoteFromCanvasY: chartQuoteFromCanvasY,
     );
   }
 
