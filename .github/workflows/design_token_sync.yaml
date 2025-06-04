@@ -124,12 +124,12 @@ jobs:
                   echo "::endgroup::"
 
             - name: 🐦 Setup Flutter
-              if: steps.check-tokens.outputs.needs_sync == 'true'
               uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
               with:
-                  flutter-version: "3.x"
-                  channel: "stable"
+                  flutter-version: "3.24.1"
+                  channel: stable
                   cache: true
+                  cache-key: flutter-:os:-:channel:-:version:-:arch:-:hash:-${{ hashFiles('**/pubspec.lock') }}
 
             - name: 📦 Install dependencies
               if: steps.check-tokens.outputs.needs_sync == 'true'
