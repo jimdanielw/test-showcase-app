@@ -117,4 +117,22 @@ abstract class InteractiveLayerBehaviour {
 
   /// Handles hover event.
   bool onHover(PointerHoverEvent event) => _interactiveState.onHover(event);
+
+  /// Checks if a point hits any drawing (both regular drawings and preview drawings).
+  ///
+  /// This method is used for hit testing to determine if a given local position
+  /// intersects with any interactive drawing elements.
+  ///
+  /// Returns `true` if the position hits any drawing, `false` otherwise.
+  bool hitTestDrawings(Offset localPosition) {
+    // Check regular and preview drawings
+    for (final drawing in [...interactiveLayer.drawings, ...previewDrawings]) {
+      if (drawing.hitTest(localPosition, interactiveLayer.epochToX,
+          interactiveLayer.quoteToY)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
