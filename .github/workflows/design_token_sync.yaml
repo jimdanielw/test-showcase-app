@@ -84,6 +84,10 @@ jobs:
                   # Start a collapsible group in the GitHub Actions log for better readability
                   echo "::group::Setting up branch for token updates"
 
+                  # Configure Git identity for any git operations
+                  git config user.name "GitHub Actions Bot"
+                  git config user.email "actions@github.com"
+
                   git checkout master
 
                   echo "Pulling latest changes from master branch in case new commits have been pushed"
