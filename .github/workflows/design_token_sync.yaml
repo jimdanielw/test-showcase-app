@@ -102,7 +102,7 @@ jobs:
                     echo "Branch does not exist - creating new branch from updated master"
                     git checkout -b $SYNC_BRANCH_NAME
                   fi
-                  
+
                   # End the collapsible group in the GitHub Actions log
                   echo "::endgroup::"
 
@@ -131,6 +131,13 @@ jobs:
                   channel: "stable"
                   cache: true
 
+            - name: 📦 Install dependencies
+              if: steps.check-tokens.outputs.needs_sync == 'true'
+              run: |
+                  echo "::group::Installing Flutter dependencies"
+                  flutter pub get
+                  echo "::endgroup::"
+
             - name: ⚙️ Run generate and check token files script
               if: steps.check-tokens.outputs.needs_sync == 'true'
               id: generate-tokens
@@ -141,20 +148,13 @@ jobs:
                   chmod +x ./scripts/generate_and_check_token_files.sh
 
                   # Run the script that generates and validates token files
+                  # Note: The script uses 'set -e' so it will exit immediately on any error
                   ./scripts/generate_and_check_token_files.sh
 
-                  # Check if the script ran successfully (exit code 0 means success)
-                  if [ $? -eq 0 ]; then
-                    echo "Token generation and validation completed successfully"
-                    # Set the output variable 'generation_success' to true for use in conditional steps
-                    echo "generation_success=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "Token generation or validation failed"
-                    # Set the output variable 'generation_success' to false for use in conditional steps
-                    echo "generation_success=false" >> $GITHUB_OUTPUT
-                    # Exit with error code 1 to indicate failure of this step
-                    exit 1
-                  fi
+                  # If we reach this point, the script completed successfully
+                  echo "Token generation and validation completed successfully"
+                  echo "generation_success=true" >> $GITHUB_OUTPUT
+
                   # End the collapsible group in the GitHub Actions log
                   echo "::endgroup::"
 
@@ -194,7 +194,7 @@ jobs:
                   # Install GitHub CLI (gh) for creating pull requests
                   sudo apt-get update
                   sudo apt-get install -y gh
-                  
+
                   # Authenticate with GitHub CLI using the workflow's GITHUB_TOKEN
                   gh auth login --with-token <<< ${{ github.token }}
 
