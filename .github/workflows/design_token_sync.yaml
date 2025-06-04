@@ -108,6 +108,7 @@ jobs:
 
             - name: 📝 Update tokens file
               if: steps.check-tokens.outputs.needs_sync == 'true'
+              id: update-tokens
               run: |
                   # Start a collapsible group in the GitHub Actions log for better readability
                   echo "::group::Updating tokens file"
@@ -119,7 +120,14 @@ jobs:
 
                   git add lib/src/theme/design_tokens/tokens.json
 
-                  git commit -m "chore: sync design tokens from quill-tokens repository"
+                  # Check if there are any changes to commit
+                  if git diff --staged --quiet; then
+                    echo "No changes to commit after copying tokens file"
+                    echo "tokens_updated=false" >> $GITHUB_OUTPUT
+                  else
+                    git commit -m "chore: sync design tokens from quill-tokens repository"
+                    echo "tokens_updated=true" >> $GITHUB_OUTPUT
+                  fi
                   # End the collapsible group in the GitHub Actions log
                   echo "::endgroup::"
 
@@ -228,6 +236,18 @@ jobs:
                   # Start a collapsible group in the GitHub Actions log for better readability
                   echo "::group::PR Status"
                   echo "PR created successfully: ${{ steps.create-pr.outputs.pr_url }}"
+                  # End the collapsible group in the GitHub Actions log
+                  echo "::endgroup::"
+
+            - name: ✅ Report No Changes
+              if: steps.check-tokens.outputs.needs_sync == 'true' && (steps.update-tokens.outputs.tokens_updated == 'false' || steps.commit-files.outputs.changes_committed == 'false')
+              run: |
+                  # Start a collapsible group in the GitHub Actions log for better readability
+                  echo "::group::No Changes Required"
+                  echo "Design tokens are already up to date. No changes were made."
+                  echo "- Tokens file was checked and found to be identical"
+                  echo "- No generated files needed updating"
+                  echo "- No pull request was created"
                   # End the collapsible group in the GitHub Actions log
                   echo "::endgroup::"
 
