@@ -498,19 +498,22 @@ class _InteractiveLayerGestureHandlerState
         _mouseCursor = newMouseCursor;
       });
     }
-    final bool hitDrawing = widget.interactiveLayerBehaviour.onHover(event);
+    final bool layerConsumingHover =
+        widget.interactiveLayerBehaviour.onHover(event);
+
     _interactionNotifier.notify();
 
     // Determine the appropriate interaction mode based on current state
     // If we're hovering over a drawing, we should be in drawing tool mode
     // Otherwise, we should be in normal mode.
     _updateInteractionMode(
-        hitDrawing ? InteractionMode.drawingTool : InteractionMode.none);
+      layerConsumingHover ? InteractionMode.drawingTool : InteractionMode.none,
+    );
 
     // For small screen variant, we don't show the crosshair on hover, as well as if we're in adding tool state
-    if (widget.crosshairVariant == CrosshairVariant.smallScreen ||
-        (widget.interactiveLayerBehaviour.currentState
-            is InteractiveAddingToolState)) {
+    if (layerConsumingHover) {
+      // InteractiveLayer is consuming the hover, we should not let the
+      // cross-hair controller handle it
       return;
     }
 

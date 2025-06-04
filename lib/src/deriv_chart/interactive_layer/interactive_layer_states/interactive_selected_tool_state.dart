@@ -1,5 +1,6 @@
 import 'package:deriv_chart/deriv_chart.dart';
 import 'package:deriv_chart/src/add_ons/drawing_tools_ui/drawing_tool_config.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../enums/drawing_tool_state.dart';
@@ -141,5 +142,13 @@ class InteractiveSelectedToolState extends InteractiveState
       );
       return false; // No drawing was hit
     }
+  }
+
+  @override
+  bool onHover(PointerHoverEvent event) {
+    if (getToolState(selected).contains(DrawingToolState.dragging)) {
+      return true;
+    }
+    return false;
   }
 }
