@@ -15,7 +15,7 @@ dependencies:
   intl: ^0.20.2 # ^0.19.0
   flutter_localizations:
     sdk: flutter
-  pref: ^0.3.2 # ^2.7.1
+  pref: ^2.7.1
   flutter_deriv_api:
     git:
       url: https://github.com/jim-deriv/flutter-deriv-api.git # https://github.com/deriv-com/flutter-deriv-api.git
