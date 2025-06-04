@@ -18,7 +18,7 @@ dependencies:
   pref: ^0.3.2 # ^2.7.1
   flutter_deriv_api:
     git:
-      url: https://git@github.com:jim-deriv/flutter-deriv-api.git # https://github.com/deriv-com/flutter-deriv-api.git
+      url: https://github.com/jim-deriv/flutter-deriv-api.git # https://github.com/deriv-com/flutter-deriv-api.git
       ref: support_for_web_2 # v1.3.0
   win32: ^5.9.0
 
