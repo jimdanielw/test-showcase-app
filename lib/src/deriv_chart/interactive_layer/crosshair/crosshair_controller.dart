@@ -6,6 +6,24 @@ import 'package:deriv_chart/src/models/candle.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+/// A sample of cursor position and timestamp for velocity calculation.
+///
+/// This class stores a position snapshot along with its timestamp to enable
+/// more accurate velocity calculations during rapid crosshair movements.
+class _PositionSample {
+  /// Creates a position sample with the given offset and timestamp.
+  const _PositionSample({
+    required this.offset,
+    required this.timestamp,
+  });
+
+  /// The cursor position at the time of sampling.
+  final Offset offset;
+
+  /// The timestamp when this position was recorded.
+  final DateTime timestamp;
+}
+
 /// Represents the immutable state of the crosshair at any given moment.
 ///
 /// This class encapsulates all the information needed to render and manage
@@ -357,39 +375,37 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   /// component of the chart.
   final double Function(double)? quoteFromCanvasY;
 
-  /// Tracks the previous cursor position for velocity calculations.
-  ///
-  /// This is used in conjunction with [_previousTime] to calculate the
-  /// drag velocity during crosshair interactions, which determines
-  /// animation durations for smooth user experience.
-  Offset _previousOffset = Offset.zero;
+  /// Smoothing factor for velocity calculations to reduce jitter during fast movements.
+  /// Value between 0.0 (no smoothing) and 1.0 (maximum smoothing).
+  /// Higher values provide smoother movement but may introduce slight lag.
+  static const double _velocitySmoothing = 0.3;
 
-  /// Tracks the timestamp of the previous position update.
-  ///
-  /// Used with [_previousOffset] to calculate time differences for
-  /// velocity computation during drag gestures.
-  DateTime _previousTime = DateTime.now();
+  /// Smoothed velocity for more stable crosshair movement during fast panning.
+  Offset _smoothedVelocity = Offset.zero;
 
-  /// Current drag velocity estimate for the crosshair interaction.
-  ///
-  /// This velocity is calculated from the difference between consecutive
-  /// cursor positions and time intervals. It's used to determine appropriate
-  /// animation durations - faster movements get shorter animations for
-  /// more responsive feel.
-  ///
-  /// The velocity is updated during drag gestures and can also be set
-  /// from Flutter's gesture system when available.
-  VelocityEstimate _dragVelocity = const VelocityEstimate(
-      confidence: 1,
-      pixelsPerSecond: Offset.zero,
-      duration: Duration.zero,
-      offset: Offset.zero);
+  /// Minimum time interval between position updates to prevent excessive calculations.
+  /// This helps maintain smooth performance during very fast gesture updates.
+  static const Duration _minUpdateInterval = Duration(milliseconds: 8);
+
+  /// Timestamp of the last position update to enforce minimum update intervals.
+  DateTime _lastUpdateTime = DateTime.now();
+
+  /// Buffer for storing recent position samples for improved velocity calculation.
+  /// This helps provide more accurate velocity estimates during rapid movements.
+  final List<_PositionSample> _positionSamples = <_PositionSample>[];
+
+  /// Maximum number of position samples to keep for velocity calculation.
+  static const int _maxSamples = 5;
 
   /// Updates the drag velocity based on current and previous cursor positions.
   ///
-  /// This method calculates the velocity in pixels per second by comparing
-  /// the current cursor position with the previous position and the time
-  /// difference between updates.
+  /// This enhanced method provides improved velocity calculation for smoother
+  /// crosshair movement during fast panning on small screens. It includes:
+  ///
+  /// - **Throttling**: Enforces minimum update intervals to prevent excessive calculations
+  /// - **Sample buffering**: Maintains a history of recent positions for better accuracy
+  /// - **Velocity smoothing**: Applies exponential smoothing to reduce jitter
+  /// - **Multi-point calculation**: Uses multiple samples for more stable velocity estimates
   ///
   /// The calculated velocity is used by [animationDuration] to determine
   /// appropriate animation timing for smooth crosshair interactions.
@@ -397,71 +413,163 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   /// Parameters:
   /// - [currentOffset]: The current cursor position in local coordinates
   ///
-  /// The method automatically updates [_previousOffset] and [_previousTime]
-  /// for the next calculation cycle.
+  /// The method automatically updates internal tracking variables for the next cycle.
   void _updateDragVelocity(Offset currentOffset) {
     final DateTime currentTime = DateTime.now();
-    final Duration timeDiff = currentTime.difference(_previousTime);
-    final Offset offsetDiff = currentOffset - _previousOffset;
 
-    // Calculate velocity in pixels per second.
-    // Ensure the duration is in milliseconds to compute per-second velocity.
-    final double vx = timeDiff.inMilliseconds > 0
-        ? (offsetDiff.dx / timeDiff.inMilliseconds) * 1000
-        : 0;
+    // Throttle updates to prevent excessive calculations during very fast movements
+    if (currentTime.difference(_lastUpdateTime) < _minUpdateInterval) {
+      return;
+    }
 
-    final double vy = timeDiff.inMilliseconds > 0
-        ? (offsetDiff.dy / timeDiff.inMilliseconds) * 1000
-        : 0;
+    // Add current position to sample buffer
+    _addPositionSample(currentOffset, currentTime);
 
-    _dragVelocity = VelocityEstimate(
-      confidence: 1,
-      pixelsPerSecond: Offset(vx, vy),
-      duration: timeDiff,
-      offset: offsetDiff,
-    );
+    // Calculate velocity using multiple samples for better accuracy
+    final Offset rawVelocity = _calculateVelocityFromSamples();
 
-    // Update previous values for next calculation
-    _previousOffset = currentOffset;
-    _previousTime = currentTime;
+    // Apply smoothing to reduce jitter during fast movements
+    _smoothedVelocity = _applyVelocitySmoothing(rawVelocity);
+
+    _lastUpdateTime = currentTime;
+  }
+
+  /// Adds a position sample to the buffer for velocity calculation.
+  ///
+  /// This method maintains a rolling buffer of recent position samples to enable
+  /// more accurate velocity calculations during rapid movements. The buffer is
+  /// limited to [_maxSamples] entries to prevent memory growth.
+  ///
+  /// Parameters:
+  /// - [position]: The cursor position to add
+  /// - [timestamp]: The time when this position was recorded
+  void _addPositionSample(Offset position, DateTime timestamp) {
+    _positionSamples.add(_PositionSample(
+      offset: position,
+      timestamp: timestamp,
+    ));
+
+    // Remove old samples to maintain buffer size
+    while (_positionSamples.length > _maxSamples) {
+      _positionSamples.removeAt(0);
+    }
+  }
+
+  /// Calculates velocity using multiple position samples for improved accuracy.
+  ///
+  /// This method analyzes the position sample buffer to compute a more stable
+  /// velocity estimate than simple two-point calculation. It uses the oldest
+  /// and newest samples to calculate velocity over a longer time period,
+  /// which helps reduce noise from rapid gesture updates.
+  ///
+  /// Returns:
+  /// - The calculated velocity in pixels per second as an [Offset]
+  /// - Returns [Offset.zero] if insufficient samples are available
+  Offset _calculateVelocityFromSamples() {
+    if (_positionSamples.length < 2) {
+      return Offset.zero;
+    }
+
+    final _PositionSample oldest = _positionSamples.first;
+    final _PositionSample newest = _positionSamples.last;
+
+    final Duration timeDiff = newest.timestamp.difference(oldest.timestamp);
+    final Offset offsetDiff = newest.offset - oldest.offset;
+
+    if (timeDiff.inMilliseconds <= 0) {
+      return Offset.zero;
+    }
+
+    // Calculate velocity in pixels per second
+    final double vx = (offsetDiff.dx / timeDiff.inMilliseconds) * 1000;
+    final double vy = (offsetDiff.dy / timeDiff.inMilliseconds) * 1000;
+
+    return Offset(vx, vy);
+  }
+
+  /// Applies exponential smoothing to velocity for reduced jitter.
+  ///
+  /// This method smooths the raw velocity calculation to provide more stable
+  /// crosshair movement during fast panning. The smoothing helps eliminate
+  /// sudden velocity spikes that can cause jarring visual effects.
+  ///
+  /// The smoothing uses the formula:
+  /// `smoothed = (1 - factor) * previous + factor * current`
+  ///
+  /// Parameters:
+  /// - [rawVelocity]: The unsmoothed velocity calculation
+  ///
+  /// Returns:
+  /// - The smoothed velocity as an [Offset]
+  Offset _applyVelocitySmoothing(Offset rawVelocity) {
+    final double smoothedX = (1 - _velocitySmoothing) * _smoothedVelocity.dx +
+        _velocitySmoothing * rawVelocity.dx;
+    final double smoothedY = (1 - _velocitySmoothing) * _smoothedVelocity.dy +
+        _velocitySmoothing * rawVelocity.dy;
+
+    return Offset(smoothedX, smoothedY);
+  }
+
+  /// Clears velocity tracking data when crosshair interaction ends.
+  ///
+  /// This method resets all velocity-related state to ensure clean startup
+  /// for the next crosshair interaction. It should be called when the
+  /// crosshair is hidden or interaction ends.
+  void _clearVelocityTracking() {
+    _positionSamples.clear();
+    _smoothedVelocity = Offset.zero;
   }
 
   /// Calculates the appropriate animation duration based on current drag velocity.
   ///
-  /// This getter provides velocity-adaptive animation timing to create smooth,
-  /// responsive crosshair interactions. The duration is inversely related to
-  /// the drag velocity - faster movements get shorter animations for immediate
-  /// feedback, while slower movements get longer animations for smoothness.
+  /// This enhanced getter provides velocity-adaptive animation timing optimized for
+  /// smooth crosshair interactions on small screens during fast panning. The duration
+  /// is inversely related to drag velocity with improved responsiveness:
   ///
-  /// Duration mapping:
-  /// - **No movement** (velocity = 0): 5ms (immediate)
-  /// - **Very fast** (velocity > 3000 px/s): 5ms (immediate)
-  /// - **Slow** (velocity < 500 px/s): 80ms (smooth)
-  /// - **Medium** (500-3000 px/s): Linear interpolation between 80ms and 5ms
+  /// **Enhanced Duration Mapping for Small Screens:**
+  /// - **No movement** (velocity = 0): 3ms (immediate)
+  /// - **Very fast** (velocity > 2500 px/s): 1ms (ultra-responsive)
+  /// - **Fast** (velocity > 1500 px/s): 3ms (very responsive)
+  /// - **Medium** (velocity 800-1500 px/s): 8-15ms (balanced)
+  /// - **Slow** (velocity < 800 px/s): 25ms (smooth but not sluggish)
   ///
-  /// The calculation uses only the horizontal (X) component of velocity since
-  /// crosshair interactions are primarily concerned with time-based navigation.
+  /// The calculation uses the smoothed velocity to provide stable animation timing
+  /// that adapts to user interaction patterns, with special optimizations for
+  /// rapid movements common on small touch screens.
   ///
   /// Returns the calculated [Duration] for use in chart animations and transitions.
   Duration get animationDuration {
-    double dragXVelocity;
+    // Use smoothed velocity for more stable animation timing
+    final double dragXVelocity = _smoothedVelocity.dx.abs();
 
-    dragXVelocity = _dragVelocity.pixelsPerSecond.dx.abs().roundToDouble();
-
-    if (dragXVelocity == 0) {
-      return const Duration(milliseconds: 5);
+    // Ultra-fast movements: immediate response for touch screen flicks
+    if (dragXVelocity > 2500) {
+      return const Duration(milliseconds: 1);
     }
 
-    if (dragXVelocity > 3000) {
-      return const Duration(milliseconds: 5);
+    // Very fast movements: minimal delay for responsive feel
+    if (dragXVelocity > 1500) {
+      return const Duration(milliseconds: 3);
     }
 
-    if (dragXVelocity < 500) {
-      return const Duration(milliseconds: 80);
+    // Fast movements: short animation for smooth tracking
+    if (dragXVelocity > 800) {
+      // Linear interpolation: 1500px/s -> 3ms, 800px/s -> 15ms
+      final double factor = (dragXVelocity - 800) / 700; // 0 to 1
+      final int duration = (15 - (factor * 12)).round(); // 15ms to 3ms
+      return Duration(milliseconds: duration);
     }
 
-    final double durationInRange = (dragXVelocity - 500) / (2500) * 75 + 5;
-    return Duration(milliseconds: durationInRange.toInt());
+    // Slow movements: longer animation for smoothness, but not too long
+    if (dragXVelocity > 0) {
+      // Linear interpolation: 800px/s -> 15ms, 0px/s -> 25ms
+      final double factor = dragXVelocity / 800; // 0 to 1
+      final int duration = (25 - (factor * 10)).round(); // 25ms to 15ms
+      return Duration(milliseconds: duration);
+    }
+
+    // No movement: immediate response
+    return const Duration(milliseconds: 3);
   }
 
   /// Handles the start of a long press gesture to activate the crosshair.
@@ -491,9 +599,8 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   /// )
   /// ```
   void onLongPressStart(LongPressStartDetails details) {
-    // Initialize position and time tracking
-    _previousOffset = details.localPosition;
-    _previousTime = DateTime.now();
+    // Initialize velocity tracking with the starting position
+    _addPositionSample(details.localPosition, DateTime.now());
 
     onCrosshairAppeared?.call();
 
@@ -574,14 +681,9 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   /// )
   /// ```
   void onLongPressEnd(LongPressEndDetails details) {
-    // Use the velocity provided by the gesture system if available
+    // Use the velocity provided by the gesture system if available for smoothed velocity
     if (details.velocity != Velocity.zero) {
-      _dragVelocity = VelocityEstimate(
-        confidence: 1,
-        pixelsPerSecond: details.velocity.pixelsPerSecond,
-        duration: const Duration(milliseconds: 1),
-        offset: Offset.zero,
-      );
+      _smoothedVelocity = details.velocity.pixelsPerSecond;
     }
 
     onCrosshairDisappeared?.call();
@@ -661,7 +763,8 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
   ///    crosshair was previously visible
   /// 2. **State update**: Updates the crosshair state to invisible
   /// 3. **Interaction reset**: Sets [isCrosshairActive] to false
-  /// 4. **Listener notification**: Notifies all listeners of the state change
+  /// 4. **Velocity cleanup**: Clears velocity tracking data for next interaction
+  /// 5. **Listener notification**: Notifies all listeners of the state change
   ///
   /// This method is called from various places including gesture end handlers
   /// and mouse exit events to ensure consistent cleanup behavior.
@@ -675,6 +778,10 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
     );
 
     isCrosshairActive = false;
+
+    // Clear velocity tracking data for clean startup of next interaction
+    _clearVelocityTracking();
+
     notifyListeners(); // Notify listeners when enabled changes
   }
 
