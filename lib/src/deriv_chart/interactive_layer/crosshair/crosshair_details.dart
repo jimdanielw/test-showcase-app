@@ -89,21 +89,34 @@ class CrosshairDetails extends StatelessWidget {
         '$date $time',
         textAlign: TextAlign.center,
         style: style,
+        maxLines: 1,
+        overflow: TextOverflow.visible,
+        softWrap: false,
       );
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          date,
-          textAlign: TextAlign.center,
-          style: style,
+        Flexible(
+          child: Text(
+            date,
+            textAlign: TextAlign.center,
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.visible,
+            softWrap: false,
+          ),
         ),
         const SizedBox(width: 8),
-        Text(
-          time,
-          textAlign: TextAlign.center,
-          style: style,
+        Flexible(
+          child: Text(
+            time,
+            textAlign: TextAlign.center,
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.visible,
+            softWrap: false,
+          ),
         ),
       ],
     );
