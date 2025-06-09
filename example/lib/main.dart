@@ -434,7 +434,9 @@ class _FullscreenChartState extends State<FullscreenChart> {
                         }
                       },
                       useDrawingToolsV2: true,
-                      crosshairVariant: kIsWeb ? CrosshairVariant.largeScreen : CrosshairVariant.smallScreen,
+                      crosshairVariant: kIsWeb
+                          ? CrosshairVariant.largeScreen
+                          : CrosshairVariant.smallScreen,
                     ),
                   ),
                   // ignore: unnecessary_null_comparison
