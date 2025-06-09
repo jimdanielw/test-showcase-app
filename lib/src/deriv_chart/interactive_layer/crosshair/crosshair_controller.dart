@@ -1,3 +1,4 @@
+import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/crosshair_variant.dart';
 import 'package:deriv_chart/src/deriv_chart/interactive_layer/crosshair/find.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/data_visualization/chart_series/data_series.dart';
 import 'package:deriv_chart/src/deriv_chart/chart/x_axis/x_axis_model.dart';
@@ -78,6 +79,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
     required this.xAxisModel,
     required this.series,
     required this.showCrosshair,
+    required this.crosshairVariant,
     this.onCrosshairAppeared,
     this.onCrosshairDisappeared,
     this.isCrosshairActive = false,
@@ -92,6 +94,9 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Master switch to enable or disable all crosshair functionality.
   final bool showCrosshair;
+
+  /// The variant of the crosshair to be used.
+  CrosshairVariant crosshairVariant;
 
   /// Callback invoked when the crosshair becomes visible.
   final VoidCallback? onCrosshairAppeared;
@@ -330,8 +335,7 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
     // Check if cursor is within the data range
     final bool isWithinDataRange = _isCursorWithinDataRange(epoch, entries);
-
-    if (isWithinDataRange) {
+    if (isWithinDataRange || crosshairVariant == CrosshairVariant.smallScreen) {
       // Within data range: snap to closest tick
       return _findClosestTick(epoch);
     } else {
@@ -373,12 +377,11 @@ class CrosshairController extends ValueNotifier<CrosshairState> {
 
   /// Updates the chart panning speed based on cursor proximity to chart edges.
   void _updatePanSpeed(double x) {
-    const double closeDistance = 60;
     const double panSpeed = 0.08;
 
-    if (x < closeDistance) {
+    if (x < _closeDistance) {
       xAxisModel.pan(-panSpeed);
-    } else if (xAxisModel.width! - x < closeDistance) {
+    } else if (xAxisModel.width! - x < _closeDistance) {
       xAxisModel.pan(panSpeed);
     } else {
       xAxisModel.pan(0);
