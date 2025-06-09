@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:deriv_chart/deriv_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:example/generated/l10n.dart';
 import 'package:example/settings_page.dart';
 import 'package:example/utils/endpoints_helper.dart';
